@@ -13,7 +13,18 @@ using WinFormsLibrary.Tools;
 
 namespace NotepadApplication {
     public partial class AutoSaveForm : Form {
-        
+
+        private static ColorStyle _colorStyle = ConfigurationSetter.ColorTheme;
+
+        public ColorStyle FormStyle {
+            get { return _colorStyle; }
+            set {
+                _colorStyle = value;
+                ColorStyle.ChangeColorScheme(_colorStyle, this);
+                ConfigurationSetter.ColorTheme = _colorStyle;
+            }
+        }
+
         public AutoSaveForm() {
             InitializeComponent();
             textBox1.Text = ConfigurationSetter.AutoSaveFrequency.ToString();
@@ -21,6 +32,7 @@ namespace NotepadApplication {
             textBox2.Text = ConfigurationSetter.BackupSaveFrequency.ToString();
             checkBox2.Checked = ConfigurationSetter.BackupSaveEnabled;
             textBox1.Enabled = checkBox1.Checked;
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e) {

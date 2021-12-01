@@ -94,6 +94,21 @@ namespace NotepadApplication {
             set => SetSettings("AllBusyUntitled", value.Select(x => x.ToString()).ToArray());
         }
 
+        public static ColorStyle ColorTheme {
+            get {
+                if (int.TryParse(GetSettings("ColorTheme")[0], out _)) {
+                    return new ColorStyle(
+                        int.Parse(GetSettings("ColorTheme")[0]),
+                        int.Parse(GetSettings("ColorTheme")[1])
+                   );
+                }
+                else {
+                    return new ColorStyle(GetSettings("ColorTheme")[0], GetSettings("ColorTheme")[1]);
+                }
+            }
+            set => SetSettings("ColorTheme", value.MainBodyBackcolor.ToArgb().ToString(), value.MainBodyForecolor.ToArgb().ToString());
+        }
+
         public static void Save() {
             s_config.Save(ConfigurationSaveMode.Minimal);
         }

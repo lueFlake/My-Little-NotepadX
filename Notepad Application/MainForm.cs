@@ -16,13 +16,31 @@ namespace NotepadApplication {
         private TextPage _tabPage => textControl.SelectedTab;
         private AutoSaveForm _autoSaveForm = new AutoSaveForm();
         private TabCloseForm _tabSaveForm = new TabCloseForm();
+        private StyleForm _styleForm = new StyleForm();
         private static int s_windowCount = 0;
+        private static ColorStyle _colorStyle = ConfigurationSetter.ColorTheme;
+
+        public ColorStyle FormStyle {
+            get { return _colorStyle; }
+            set {
+                _colorStyle = value;
+                ColorStyle.ChangeColorScheme(_colorStyle, this);
+                TextPage.TextBoxDefaultColor = value;
+                ConfigurationSetter.ColorTheme = _colorStyle;
+
+                Graphics g = this.CreateGraphics();
+                using (Pen selPen = new Pen(Color.Blue)) {
+                    g.DrawRectangle(selPen, 10, 10, 50, 50);
+                }
+            }
+        }
 
         public MainForm(bool empty = false) {
             s_windowCount++;
             InitializeComponent();
             timer1.Interval = 60000 * (int)ConfigurationSetter.AutoSaveFrequency;
             TextPage.ContextMenuStripForTextBoxes = contextMenuStrip2;
+            FormStyle = ConfigurationSetter.ColorTheme;
             if (!empty) {
                 InitializePrevioslyOpened();
             }
@@ -122,11 +140,14 @@ namespace NotepadApplication {
             _autoSaveForm.ShowDialog();
         }
 
+        // Меню выбора темы.
+
         private void settingsColorSchemeToolStripMenuItem_Click(object sender, EventArgs e) {
-
+            _styleForm.ShowDialog();
+            FormStyle = _styleForm.Callback;
         }
-
-        // Конец меню настроек.
+        
+        // Конец меню ывбора темы.
 
         // Меню файла.
 

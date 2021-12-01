@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsLibrary.Tools;
 
 namespace WinFormsLibrary.Controls {
     public class TextPage : TabPage {
@@ -13,12 +14,12 @@ namespace WinFormsLibrary.Controls {
         private RichTextBox _textBox;
         private RichTextBox _localBackup;
 
-        public RichTextBox TextBox => _textBox;
-
         private FileInfo _fileInfo;
         private bool _isSaved;
         private bool _empty;
         private string _untitled;
+
+        public RichTextBox TextBox => _textBox;
 
         public bool IsUntitled => _fileInfo == null;
 
@@ -27,6 +28,8 @@ namespace WinFormsLibrary.Controls {
 
         public bool IsSaved => _isSaved;
         public bool Empty => _empty;
+
+        public static ColorStyle TextBoxDefaultColor { get; set; }
 
         public TextPage(FileInfo file = null) : base() {
             _fileInfo = file;
@@ -53,12 +56,13 @@ namespace WinFormsLibrary.Controls {
                 _isSaved = true;
             }
             else {
-                _untitled = Tools.NamingManager.GetNewUntitled();
+                _untitled = NamingManager.GetNewUntitled();
                 _isSaved = false;
             }
             _empty = IsUntitled;
             _textBox.TextChanged += TextBoxChangeEventHandler;
             Controls.Add(_textBox);
+            ColorStyle.ChangeColorScheme(TextBoxDefaultColor, this);
             UpdateText();
         }
 

@@ -38,9 +38,10 @@
             // button1
             // 
             this.button1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.button1.Location = new System.Drawing.Point(0, 143);
+            this.button1.Location = new System.Drawing.Point(0, 113);
+            this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(421, 29);
+            this.button1.Size = new System.Drawing.Size(368, 22);
             this.button1.TabIndex = 5;
             this.button1.Text = "Сохранить и выйти";
             this.button1.UseVisualStyleBackColor = true;
@@ -48,17 +49,19 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(355, 36);
+            this.textBox1.Location = new System.Drawing.Point(311, 27);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(54, 27);
+            this.textBox1.Size = new System.Drawing.Size(48, 23);
             this.textBox1.TabIndex = 1;
             // 
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(6, 12);
+            this.checkBox1.Location = new System.Drawing.Point(5, 9);
+            this.checkBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(216, 24);
+            this.checkBox1.Size = new System.Drawing.Size(173, 19);
             this.checkBox1.TabIndex = 4;
             this.checkBox1.Text = "Включить автосохранение";
             this.checkBox1.UseVisualStyleBackColor = true;
@@ -67,18 +70,19 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 39);
+            this.label1.Location = new System.Drawing.Point(5, 29);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(321, 20);
+            this.label1.Size = new System.Drawing.Size(254, 15);
             this.label1.TabIndex = 7;
             this.label1.Text = "Задайте частоту автосохранений (в минутах)";
             // 
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(6, 69);
+            this.checkBox2.Location = new System.Drawing.Point(5, 52);
+            this.checkBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(388, 24);
+            this.checkBox2.Size = new System.Drawing.Size(311, 19);
             this.checkBox2.TabIndex = 8;
             this.checkBox2.Text = "Включить сохранение копий открытых документов";
             this.checkBox2.UseVisualStyleBackColor = true;
@@ -86,25 +90,26 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(355, 93);
+            this.textBox2.Location = new System.Drawing.Point(311, 70);
+            this.textBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(54, 27);
+            this.textBox2.Size = new System.Drawing.Size(48, 23);
             this.textBox2.TabIndex = 9;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 96);
+            this.label2.Location = new System.Drawing.Point(5, 72);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(337, 20);
+            this.label2.Size = new System.Drawing.Size(267, 15);
             this.label2.TabIndex = 10;
             this.label2.Text = "Задайте частоту сохранений копий (в минутах)";
             // 
             // AutoSaveForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(421, 172);
+            this.ClientSize = new System.Drawing.Size(368, 135);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.checkBox2);
@@ -113,6 +118,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "AutoSaveForm";

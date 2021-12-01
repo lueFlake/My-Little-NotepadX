@@ -7,11 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsLibrary.Tools;
 
 namespace NotepadApplication {
     public partial class TabCloseForm : Form {
         public TabCloseForm() {
             InitializeComponent();
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
 
         private void button1_Click(object sender, EventArgs e) {

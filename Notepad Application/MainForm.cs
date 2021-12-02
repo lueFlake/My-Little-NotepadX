@@ -13,25 +13,20 @@ using System.Collections.Generic;
 
 namespace NotepadApplication {
     public partial class MainForm : Form {
-        private TextPage _tabPage => textControl.SelectedTab;
-        private AutoSaveForm _autoSaveForm = new AutoSaveForm();
-        private TabCloseForm _tabSaveForm = new TabCloseForm();
-        private StyleForm _styleForm = new StyleForm();
+        private TextPage tabPage => textControl.SelectedTab;
+        private static readonly AutoSaveForm s_autoSaveForm = new();
+        private static readonly TabCloseForm s_tabSaveForm = new();
+        private static readonly StyleForm s_styleForm = new();
         private static int s_windowCount = 0;
-        private static ColorStyle _colorStyle = ConfigurationSetter.ColorTheme;
+        private static ColorStyle s_colorStyle = ConfigurationSetter.ColorTheme;
 
         public ColorStyle FormStyle {
-            get { return _colorStyle; }
+            get => s_colorStyle; 
             set {
-                _colorStyle = value;
-                ColorStyle.ChangeColorScheme(_colorStyle, this);
+                s_colorStyle = value;
+                ColorStyle.ChangeColorScheme(s_colorStyle, this);
                 TextPage.TextBoxDefaultColor = value;
-                ConfigurationSetter.ColorTheme = _colorStyle;
-
-                Graphics g = this.CreateGraphics();
-                using (Pen selPen = new Pen(Color.Blue)) {
-                    g.DrawRectangle(selPen, 10, 10, 50, 50);
-                }
+                ConfigurationSetter.ColorTheme = s_colorStyle;
             }
         }
 
@@ -53,7 +48,7 @@ namespace NotepadApplication {
 
         private void InitializePrevioslyOpened() {
             var previousFiles = ConfigurationSetter.GetPreviouslyOpenedFiles();
-            if (previousFiles.Count() != 0) {
+            if (previousFiles.Count != 0) {
                 foreach (var page in previousFiles) {
                     textControl.TabPages.Add(page);
                 }
@@ -68,27 +63,27 @@ namespace NotepadApplication {
 
 
         private void selectAllToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.SelectAll();
+            tabPage.TextBox.SelectAll();
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.Copy();
+            tabPage.TextBox.Copy();
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.Cut();
+            tabPage.TextBox.Cut();
         }
 
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.Paste();
+            tabPage.TextBox.Paste();
         }
 
         private void undoToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.Undo();
+            tabPage.TextBox.Undo();
         }
 
         private void redoToolStripMenuItem_Click(object sender, EventArgs e) {
-            _tabPage.TextBox.Redo();
+            tabPage.TextBox.Redo();
         }
 
         // Конец меню правки.
@@ -97,8 +92,8 @@ namespace NotepadApplication {
 
         private void formatFonlToolStripMenuItem_Click(object sender, EventArgs e) {
             fontDialog1.ShowDialog();
-            _tabPage.TextBox.SelectionFont = fontDialog1.Font;
-            _tabPage.TextBox.SelectionColor = fontDialog1.Color;
+            tabPage.TextBox.SelectionFont = fontDialog1.Font;
+            tabPage.TextBox.SelectionColor = fontDialog1.Color;
         }
 
         private void boldToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -118,12 +113,12 @@ namespace NotepadApplication {
         }
 
         private void ChangeFontStyle(FontStyle fontStyle) {
-            var currentFont = _tabPage.TextBox.SelectionFont;
+            var currentFont = tabPage.TextBox.SelectionFont;
             if (currentFont == null) {
                 MessageBox.Show("Невозможно применить: разные шрифты.");
                 return;
             }
-            _tabPage.TextBox.SelectionFont = new Font(
+            tabPage.TextBox.SelectionFont = new Font(
                 currentFont.FontFamily,
                 currentFont.Size,
                 currentFont.Style.HasFlag(fontStyle) ?
@@ -137,14 +132,14 @@ namespace NotepadApplication {
         // Меню настроек.
 
         private void settingsSaveFreqToolStripMenuItem_Click(object sender, EventArgs e) {
-            _autoSaveForm.ShowDialog();
+            s_autoSaveForm.ShowDialog();
         }
 
         // Меню выбора темы.
 
         private void settingsColorSchemeToolStripMenuItem_Click(object sender, EventArgs e) {
-            _styleForm.ShowDialog();
-            FormStyle = _styleForm.Callback;
+            s_styleForm.ShowDialog();
+            FormStyle = s_styleForm.Callback;
         }
         
         // Конец меню ывбора темы.
@@ -175,22 +170,22 @@ namespace NotepadApplication {
         }
 
         private void fileSaveToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (_tabPage.IsUntitled || !File.Exists(_tabPage.FileFullName)) {
+            if (tabPage.IsUntitled || !File.Exists(tabPage.FileFullName)) {
                 fileSaveAsToolStripMenuItem_Click(sender, e);
             }
             else {
-                _tabPage.SaveFile();
+                tabPage.SaveFile();
             }
         }
 
         private void fileSaveAsToolStripMenuItem_Click(object sender, EventArgs e) {
             FileInfo savePath = MessageTools.ShowFileDialog();
             if (savePath != null)
-                _tabPage.SaveFile(savePath);
+                tabPage.SaveFile(savePath);
         }
 
         private void fileSaveOpenedToolStripMenuItem_Click(object sender, EventArgs e) {
-            foreach (TextPage page in textControl.TabPages) {
+            foreach (var page in textControl.TabPages) {
                 if (!page.IsUntitled)
                     page.SaveFile();
             }
@@ -202,18 +197,13 @@ namespace NotepadApplication {
 
         }
 
-        /*private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e) {
-            System.Threading.Thread.Sleep(60000 * (int)ConfigurationSetter.AutoSaveFrequency);
-            timer1.
-        }*/
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
             List<TextPage> unsavedTextPages = textControl.TabPages.
                 OfType<TextPage>().
                 Where(page => !page.IsSaved).
                 ToList();
             if (unsavedTextPages.Count > 0) {
-                AppCloseForm appCloseForm = new AppCloseForm(unsavedTextPages);
+                var appCloseForm = new AppCloseForm(unsavedTextPages);
                 if (appCloseForm.ShowDialog() == DialogResult.Cancel) {
                     e.Cancel = true;
                 }
@@ -221,10 +211,10 @@ namespace NotepadApplication {
         }
 
         private void closeTabToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (_tabSaveForm.ShowDialog() == DialogResult.Yes) {
+            if (s_tabSaveForm.ShowDialog() == DialogResult.Yes) {
                 FileInfo savePath = MessageTools.ShowFileDialog();
                 if (savePath != null)
-                    _tabPage.SaveFile(savePath);
+                    tabPage.SaveFile(savePath);
             }
             NamingManager.RemoveUntitled(textControl.SelectedTab.FileName);
             textControl.Controls.RemoveAt(textControl.SelectedIndex);
@@ -232,7 +222,7 @@ namespace NotepadApplication {
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
             Point p = textControl.PointToClient(Cursor.Position);
-            for (int i = 0; i < textControl.TabCount; i++) {
+            for (var i = 0; i < textControl.TabCount; i++) {
                 Rectangle r = textControl.GetTabRect(i);
                 if (r.Contains(p)) {
                     textControl.SelectTab(i);
@@ -264,9 +254,15 @@ namespace NotepadApplication {
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
-            fileSaveOpenedToolStripMenuItem_Click(sender, EventArgs.Empty);
-            SimpleLogsProvider.WriteLine("Saved.");
-            timer1.Interval = 60000 * (int)ConfigurationSetter.AutoSaveFrequency;
+            if (ConfigurationSetter.AutoSaveEnabled) {
+                fileSaveOpenedToolStripMenuItem_Click(sender, EventArgs.Empty);
+                SimpleLogsProvider.WriteLine("Saved.");
+                timer1.Interval = 60000 * (int)ConfigurationSetter.AutoSaveFrequency;
+            }
+        }
+
+        private void undoChangesToolStripMenuItem_Click(object sender, EventArgs e) {
+            tabPage.Reload();
         }
     }
 }

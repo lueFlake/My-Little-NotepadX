@@ -11,8 +11,14 @@ using WinFormsLibrary;
 
 namespace WinFormsLibrary.Controls {
     public partial class TextControl : TabControl {
+
         public TextControl() : base() {
             TabPages = new TextPageCollection(this);
+
+            //!!!!
+            DrawMode = TabDrawMode.OwnerDrawFixed;
+            DrawItem += new System.Windows.Forms.DrawItemEventHandler(tabControl1_DrawItem);
+            //!!!!
         }
 
         public class TextPageCollection : TabPageCollection {
@@ -58,8 +64,22 @@ namespace WinFormsLibrary.Controls {
 
         public new TextPageCollection TabPages { get; }
 
-        public Color TabTextBackColor {
-            get;
+        void tabControl1_DrawItem(object sender, DrawItemEventArgs e) {
+
+            Color backColor = Color.Magenta;
+            if (e.Index == SelectedIndex) 
+                backColor = Color.DarkMagenta;
+
+            Rectangle rect = e.Bounds;
+            e.Graphics.FillRectangle(new SolidBrush(backColor), (rect.X) + 4, rect.Y, (rect.Width) - 4, rect.Height);
+
+            SizeF sz = e.Graphics.MeasureString(TabPages[e.Index].Text, e.Font);
+            e.Graphics.DrawString(TabPages[e.Index].Text, 
+                e.Font,
+                e.Index == SelectedIndex ? Brushes.WhiteSmoke : Brushes.White,
+                e.Bounds.Left + (e.Bounds.Width - sz.Width) / 2,
+                e.Bounds.Top + (e.Bounds.Height - sz.Height) / 2 + 1
+            );
         }
     }
 }

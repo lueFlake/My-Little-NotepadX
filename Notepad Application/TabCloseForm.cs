@@ -13,7 +13,6 @@ namespace NotepadApplication {
     public partial class TabCloseForm : Form {
         public TabCloseForm() {
             InitializeComponent();
-            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -23,6 +22,10 @@ namespace NotepadApplication {
         private void button2_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.No;
             Close();
+        }
+
+        private void TabCloseForm_Load(object sender, EventArgs e) {
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
     }
 }

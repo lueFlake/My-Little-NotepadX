@@ -32,7 +32,6 @@ namespace NotepadApplication {
             textBox2.Text = ConfigurationSetter.BackupSaveFrequency.ToString();
             checkBox2.Checked = ConfigurationSetter.BackupSaveEnabled;
             textBox1.Enabled = checkBox1.Checked;
-            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e) {
@@ -58,6 +57,10 @@ namespace NotepadApplication {
         private void checkBox2_CheckedChanged(object sender, EventArgs e) {
             ConfigurationSetter.BackupSaveEnabled = checkBox2.Checked;
             textBox2.Enabled = checkBox2.Checked;
+        }
+
+        private void AutoSaveForm_Load(object sender, EventArgs e) {
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
     }
 }

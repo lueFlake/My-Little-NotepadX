@@ -9,30 +9,30 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinFormsLibrary.Tools;
 
-namespace NotepadApplication
-{
-    public partial class StyleForm : Form
-    {
+namespace NotepadApplication {
+    public partial class StyleForm : Form {
 
-        public ColorStyle Callback { get; set; }
-
-        public StyleForm()
-        {
-            InitializeComponent();
-            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
-            Callback = ConfigurationSetter.ColorTheme;
+        public ColorStyle Callback {
+            get; set;
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
+        public StyleForm() {
+            InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
             Callback = new ColorStyle((31, 31, 31), (240, 240, 240));
             this.Close();
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
+        private void button2_Click(object sender, EventArgs e) {
             Callback = new ColorStyle("Control", "Black");
             this.Close();
+        }
+
+        private void StyleForm_Load(object sender, EventArgs e) {
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
+            Callback = ConfigurationSetter.ColorTheme;
         }
     }
 }

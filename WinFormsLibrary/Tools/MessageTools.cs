@@ -36,10 +36,10 @@ namespace WinFormsLibrary.Tools {
             }
 
             var fileInfo = new FileInfo(s_dialog.FileName);
-            if (!fileInfo.Directory.Exists)
+            if (fileInfo == null || !fileInfo.Directory.Exists)
                 return null;
 
-            return new FileInfo(s_dialog.FileName);
+            return fileInfo;
         }
     }
 }

@@ -104,6 +104,7 @@
             this.MinimizeBox = false;
             this.Name = "AppCloseForm";
             this.Text = "Подтверждение закрытия";
+            this.Load += new System.EventHandler(this.AppCloseForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

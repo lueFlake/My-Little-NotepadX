@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,25 +30,44 @@ namespace WinFormsLibrary.Tools
             MainBodyForecolor = Color.FromArgb(color2);
         }
 
+        [JsonConstructor]
+        public ColorStyle(Color MainBodyBackcolor, Color MainBodyForecolor) {
+            this.MainBodyBackcolor = MainBodyBackcolor;
+            this.MainBodyForecolor = MainBodyForecolor;
+        }
+
         public static void ChangeColorScheme(ColorStyle style, Control control) {
             control.BackColor = style.MainBodyBackcolor;
             control.ForeColor = style.MainBodyForecolor;
             if (control is MenuStrip) {
-                foreach (ToolStripMenuItem item in ((MenuStrip)control).Items) {
-                    ChangeColorScheme(style, item);
+                foreach (var item in ((MenuStrip)control).Items) {
+                    if (item is ToolStripMenuItem)
+                        ChangeColorScheme(style, (ToolStripMenuItem)item);
+                }
+            }
+            if (control.ContextMenuStrip != null) {
+                foreach (var item in control.ContextMenuStrip.Items) {
+                    if (item is ToolStripMenuItem)
+                        ChangeColorScheme(style, (ToolStripMenuItem)item);
                 }
             }
             foreach (Control subcontrol in control.Controls) {
                 ChangeColorScheme(style, subcontrol);
-            }        
+            }
         }
 
         public static void ChangeColorScheme(ColorStyle style, ToolStripMenuItem item) {
             item.BackColor = style.MainBodyBackcolor;
             item.ForeColor = style.MainBodyForecolor;
-            foreach (var subcontrol in item.DropDownItems) {
-                if (subcontrol is ToolStripMenuItem)
-                    ChangeColorScheme(style, (ToolStripMenuItem)subcontrol);
+            foreach (var subitem in item.DropDownItems) {
+                if (subitem is ToolStripMenuItem) {
+                    ChangeColorScheme(style, (ToolStripMenuItem)subitem);
+                }
+                if (subitem is ToolStripSeparator) {
+                    ToolStripSeparator stripSeparator = (ToolStripSeparator)subitem;
+                    stripSeparator.BackColor = style.MainBodyBackcolor;
+                    stripSeparator.ForeColor = style.MainBodyForecolor;
+                }
             }
         }
     }

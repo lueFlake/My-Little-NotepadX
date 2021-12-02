@@ -89,7 +89,7 @@ namespace WinFormsLibrary.Controls {
 
         public void Reload() {
             _textBox = _localBackup;
-            if (!File.Exists(_fileInfo.FullName)) {
+            if (!File.Exists(FileFullName)) {
                 if (!IsUntitled) {
                     MessageBox.Show("Путь файла более не существует. Файл остается несохраненным!");
                 }

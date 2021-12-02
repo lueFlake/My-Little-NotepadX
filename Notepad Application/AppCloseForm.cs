@@ -14,16 +14,6 @@ using WinFormsLibrary.Tools;
 namespace NotepadApplication {
     public partial class AppCloseForm : Form {
         private List<TextPage> _textPages;
-        private static ColorStyle _colorStyle = ConfigurationSetter.ColorTheme;
-
-        public ColorStyle FormStyle {
-            get { return _colorStyle; }
-            set {
-                _colorStyle = value;
-                ColorStyle.ChangeColorScheme(_colorStyle, this);
-                ConfigurationSetter.ColorTheme = _colorStyle;
-            }
-        }
 
         public string fileLabel {
             get  => label2.Text; 
@@ -33,9 +23,8 @@ namespace NotepadApplication {
         public AppCloseForm(List<TextPage> textPages) {
             InitializeComponent();
             _textPages = textPages;
-            listBox1.Items.AddRange(_textPages.Select(x => x.FileName).ToArray());
-
-            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
+            foreach (var page in textPages)
+                listBox1.Items.Add(page.FileName);
         }
 
         private void button3_Click(object sender, EventArgs e) {
@@ -73,6 +62,10 @@ namespace NotepadApplication {
                 DialogResult = DialogResult.Ignore;
                 Close();
             }
+        }
+
+        private void AppCloseForm_Load(object sender, EventArgs e) {
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }
     }
 }

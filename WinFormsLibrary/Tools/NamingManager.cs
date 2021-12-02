@@ -33,6 +33,11 @@ namespace WinFormsLibrary.Tools {
         public static List<int> AllBusyUntitled {
             get => s_setOfUntitled.ToList();
             set {
+                if (value == null) {
+                    s_setOfUntitled = new SortedSet<int>();
+                    s_setOfUntitled.Add(1);
+                    return;
+                }
                 s_setOfUntitled = new SortedSet<int>(value); 
                 while (s_setOfUntitled.Contains(s_mexForUntitled)) {
                     s_mexForUntitled++;

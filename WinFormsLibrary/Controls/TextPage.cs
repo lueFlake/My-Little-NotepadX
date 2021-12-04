@@ -9,32 +9,33 @@ using WinFormsLibrary.Tools;
 
 namespace WinFormsLibrary.Controls {
     public class TextPage : TabPage {
-        public static ContextMenuStrip ContextMenuStripForTextBoxes { get; set; }
 
-        private RichTextBox _textBox;
         private RichTextBox _localBackup;
 
-        private FileInfo _fileInfo;
-        private bool _isSaved;
-        private bool _empty;
-        private string _untitled;
+        protected bool isSaved;
+        protected bool empty;
+        protected string untitled;
+        protected FileInfo? fileInfo;
+        protected RichTextBox textBox;
 
-        public RichTextBox TextBox => _textBox;
+        public string FileName => !IsUntitled ? fileInfo.Name : untitled;
+        public string FileFullName => !IsUntitled ? fileInfo.FullName : "";
 
-        public bool IsUntitled => _fileInfo == null;
+        public bool IsUntitled => fileInfo == null;
+        public bool IsSaved => isSaved;
+        public bool Empty => empty;
 
-        public string FileName => !IsUntitled ? _fileInfo.Name : _untitled;
-        public string FileFullName => !IsUntitled ? _fileInfo.FullName : "";
-
-        public bool IsSaved => _isSaved;
-        public bool Empty => _empty;
-
+        public RichTextBox TextBox {
+            get => textBox;
+            set => textBox = value;
+        }
         public static ColorStyle TextBoxDefaultColor { get; set; }
+        public static ContextMenuStrip ContextMenuStripForTextBoxes { get; set; }
 
-        public TextPage(FileInfo file = null) : base() {
-            _fileInfo = file;
+        protected TextPage(FileInfo? file = null) : base() {
+            fileInfo = file;
 
-            _textBox = new RichTextBox() {
+            textBox = new RichTextBox() {
                 Dock = DockStyle.Fill,
                 Multiline = true,
                 ContextMenuStrip = ContextMenuStripForTextBoxes
@@ -47,58 +48,69 @@ namespace WinFormsLibrary.Controls {
             };
 
             if (!IsUntitled) {
-                if (file.Extension is ".txt" or ".rtf" or ".cs") {
-                    _textBox.LoadFile(file.FullName);
-                }
-                else {
-                    _textBox.Text = File.ReadAllText(file.FullName);
-                }
-                _isSaved = true;
+                InitializeTextBox();
+                isSaved = true;
             }
             else {
-                _untitled = NamingManager.GetNewUntitled();
-                _isSaved = false;
+                untitled = NamingManager.GetNewUntitled();
+                isSaved = false;
             }
-            _empty = IsUntitled;
-            _textBox.TextChanged += TextBoxChangeEventHandler;
-            Controls.Add(_textBox);
+
+
+            empty = IsUntitled;
+            textBox.TextChanged += TextBoxChangeEventHandler;
+            Controls.Add(textBox);
             ColorStyle.ChangeColorScheme(TextBoxDefaultColor, this);
             UpdateText();
         }
 
-        public TextPage(FileInfo bufferedFile, string outputFile, string text, bool isSaved, bool empty) : this(bufferedFile) {
-            _fileInfo = outputFile == "" ? null : new FileInfo(outputFile);
+        protected TextPage(FileInfo? bufferedFile, string outputFile, string text, bool isSaved, bool empty) : this(bufferedFile) {
+            fileInfo = outputFile == "" ? null : new FileInfo(outputFile);
             if (IsUntitled)
-                _untitled = text;
-            _isSaved = isSaved;
-            _empty = empty;
+                untitled = text;
+            this.isSaved = isSaved;
+            this.empty = empty;
             UpdateText();
         }
 
-        public void SaveFile(FileInfo file) {
-            _fileInfo = file;
-            _textBox.SaveFile(file.FullName);
-            _localBackup = _textBox;
-            _isSaved = true;
-            UpdateText();
+        protected virtual void InitializeTextBox() {
+            textBox.Text = File.ReadAllText(fileInfo.FullName);
         }
 
-        public void SaveFile() {
-            SaveFile(_fileInfo);
+        public TextPage SaveFile(FileInfo file) {
+            if (file.Extension == ".rtf" && fileInfo.Extension == ".rtf") {
+                textBox.SaveFile(file.FullName);
+            }
+            else {
+                File.WriteAllText(file.FullName, textBox.Text);
+            }
+            fileInfo = file;
+            _localBackup = textBox;
+            isSaved = true;
+            UpdateText();
+            return file.Extension switch {
+                ".rtf" => new RTFTextPage(fileInfo),
+                ".cs" => new CSharpTextPage(fileInfo),
+                _ => new AnyFileTextPage(fileInfo)
+            };
+        }
+
+        public TextPage SaveFile() {
+            return SaveFile(fileInfo);
         }
 
         public void Reload() {
-            _textBox = _localBackup;
+            textBox = _localBackup;
             if (!File.Exists(FileFullName)) {
                 if (!IsUntitled) {
                     MessageBox.Show("Путь файла более не существует. Файл остается несохраненным!");
                 }
                 else {
-                    _empty = true;
+                    empty = true;
                 }
             }
             else {
-                _isSaved = true;
+                isSaved = true;
             }
             UpdateText();
         }
@@ -107,13 +119,13 @@ namespace WinFormsLibrary.Controls {
             return (obj is TextPage) && Text == (obj as TextPage)?.Text;
         }
 
-        private void TextBoxChangeEventHandler(object sender, EventArgs e) {
-            _empty = false;
-            _isSaved = false;
+        protected virtual void TextBoxChangeEventHandler(object sender, EventArgs e) {
+            empty = false;
+            isSaved = false;
             UpdateText();
         }
 
-        private void UpdateText() {
+        protected void UpdateText() {
             if (Empty || IsSaved) {
                 Text = FileName;
             }

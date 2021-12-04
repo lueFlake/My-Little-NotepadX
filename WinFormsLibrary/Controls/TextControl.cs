@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,10 +16,8 @@ namespace WinFormsLibrary.Controls {
         public TextControl() : base() {
             TabPages = new TextPageCollection(this);
 
-            //!!!!
             DrawMode = TabDrawMode.OwnerDrawFixed;
-            DrawItem += new System.Windows.Forms.DrawItemEventHandler(tabControl1_DrawItem);
-            //!!!!
+            DrawItem += new System.Windows.Forms.DrawItemEventHandler(TextControlDrawItem);
         }
 
         public class TextPageCollection : TabPageCollection {
@@ -28,9 +27,9 @@ namespace WinFormsLibrary.Controls {
 
             public new TextPage this[string key] => (TextPage)base[key];
 
-            public int Add(System.IO.FileInfo file = null) {
+            public int Add(FileInfo file = null) {
                 try {
-                    var textPage = new TextPage(file);
+                    var textPage = CreateInstance(file);
 
                     if (!Contains(textPage)) {
                         Add(textPage);
@@ -50,7 +49,7 @@ namespace WinFormsLibrary.Controls {
             }
 
             public int Add() {
-                var textPage = new TextPage();
+                var textPage = CreateInstance();
                 Add(textPage);
                 return Count - 1;
             }
@@ -64,7 +63,7 @@ namespace WinFormsLibrary.Controls {
 
         public new TextPageCollection TabPages { get; }
 
-        void tabControl1_DrawItem(object sender, DrawItemEventArgs e) {
+        private void TextControlDrawItem(object sender, DrawItemEventArgs e) {
 
             Color backColor = Color.Magenta;
             if (e.Index == SelectedIndex) 
@@ -80,6 +79,25 @@ namespace WinFormsLibrary.Controls {
                 e.Bounds.Left + (e.Bounds.Width - sz.Width) / 2,
                 e.Bounds.Top + (e.Bounds.Height - sz.Height) / 2 + 1
             );
+        }
+
+        private static TextPage CreateInstance(FileInfo? fileInfo = null) {
+            if (fileInfo == null) {
+                return new AnyFileTextPage(fileInfo);
+            }
+            return fileInfo.Extension switch {
+                ".rtf" => new RTFTextPage(fileInfo),
+                ".cs" => new CSharpTextPage(fileInfo),
+                _ => new AnyFileTextPage(fileInfo)
+            };
+        }
+
+        public static TextPage CreateInstance(FileInfo bufferedFile, string outputFile, string text, bool isSaved, bool empty) {
+            return bufferedFile.Extension switch {
+                ".rtf" => new RTFTextPage(bufferedFile, outputFile, text, isSaved, empty),
+                ".cs" => new CSharpTextPage(bufferedFile, outputFile, text, isSaved, empty),
+                _ => new AnyFileTextPage(bufferedFile, outputFile, text, isSaved, empty)
+            };
         }
     }
 }

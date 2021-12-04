@@ -10,18 +10,27 @@ using System.Text.RegularExpressions;
 using WinFormsLibrary.Controls;
 using WinFormsLibrary.Tools;
 using System.Collections.Generic;
+using CSharpLibrary;
+using System.Threading.Tasks;
 
 namespace NotepadApplication {
     public partial class MainForm : Form {
-        private TextPage tabPage => textControl.SelectedTab;
+        private TextPage SelectedPage {
+            get => textControl.SelectedTab;
+            set => textControl.TabPages[textControl.SelectedIndex] = value;
+        }
+
+        private const int V = 200;
         private static readonly AutoSaveForm s_autoSaveForm = new();
         private static readonly TabCloseForm s_tabSaveForm = new();
         private static readonly StyleForm s_styleForm = new();
+        private static readonly CompilerForm s_compilerForm = new();
         private static int s_windowCount = 0;
         private static ColorStyle s_colorStyle = ConfigurationSetter.ColorTheme;
+        private RichTextBox temporaryTextBox;
 
         public ColorStyle FormStyle {
-            get => s_colorStyle; 
+            get => s_colorStyle;
             set {
                 s_colorStyle = value;
                 ColorStyle.ChangeColorScheme(s_colorStyle, this);
@@ -34,6 +43,7 @@ namespace NotepadApplication {
             s_windowCount++;
             InitializeComponent();
             timer1.Interval = 60000 * (int)ConfigurationSetter.AutoSaveFrequency;
+            timer3.Interval = 60000 * (int)ConfigurationSetter.BackupSaveFrequency;
             TextPage.ContextMenuStripForTextBoxes = contextMenuStrip2;
             FormStyle = ConfigurationSetter.ColorTheme;
             if (!empty) {
@@ -44,6 +54,14 @@ namespace NotepadApplication {
             }
             //backgroundWorker1.RunWorkerAsync();
             NamingManager.AllBusyUntitled = ConfigurationSetter.AllBusyUntitled;
+            textControl_SelectedIndexChanged(this, EventArgs.Empty);
+
+            temporaryTextBox = new RichTextBox() {
+                BackColor = SelectedPage.TextBox.BackColor,
+                ForeColor = SelectedPage.TextBox.ForeColor,
+                Dock = DockStyle.Fill,
+                Multiline = true
+            };
         }
 
         private void InitializePrevioslyOpened() {
@@ -63,27 +81,27 @@ namespace NotepadApplication {
 
 
         private void selectAllToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.SelectAll();
+            SelectedPage.TextBox.SelectAll();
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.Copy();
+            SelectedPage.TextBox.Copy();
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.Cut();
+            SelectedPage.TextBox.Cut();
         }
 
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.Paste();
+            SelectedPage.TextBox.Paste();
         }
 
         private void undoToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.Undo();
+            SelectedPage.TextBox.Undo();
         }
 
         private void redoToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.TextBox.Redo();
+            SelectedPage.TextBox.Redo();
         }
 
         // Конец меню правки.
@@ -92,8 +110,8 @@ namespace NotepadApplication {
 
         private void formatFonlToolStripMenuItem_Click(object sender, EventArgs e) {
             fontDialog1.ShowDialog();
-            tabPage.TextBox.SelectionFont = fontDialog1.Font;
-            tabPage.TextBox.SelectionColor = fontDialog1.Color;
+            SelectedPage.TextBox.SelectionFont = fontDialog1.Font;
+            SelectedPage.TextBox.SelectionColor = fontDialog1.Color;
         }
 
         private void boldToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -113,12 +131,12 @@ namespace NotepadApplication {
         }
 
         private void ChangeFontStyle(FontStyle fontStyle) {
-            var currentFont = tabPage.TextBox.SelectionFont;
+            var currentFont = SelectedPage.TextBox.SelectionFont;
             if (currentFont == null) {
                 MessageBox.Show("Невозможно применить: разные шрифты.");
                 return;
             }
-            tabPage.TextBox.SelectionFont = new Font(
+            SelectedPage.TextBox.SelectionFont = new Font(
                 currentFont.FontFamily,
                 currentFont.Size,
                 currentFont.Style.HasFlag(fontStyle) ?
@@ -135,14 +153,16 @@ namespace NotepadApplication {
             s_autoSaveForm.ShowDialog();
         }
 
-        // Меню выбора темы.
+        private void compilerToolStripMenuItem_Click(object sender, EventArgs e) {
+            s_compilerForm.ShowDialog();
+        }
 
         private void settingsColorSchemeToolStripMenuItem_Click(object sender, EventArgs e) {
             s_styleForm.ShowDialog();
             FormStyle = s_styleForm.Callback;
         }
-        
-        // Конец меню ывбора темы.
+
+        // Конец меню настроек.
 
         // Меню файла.
 
@@ -170,24 +190,24 @@ namespace NotepadApplication {
         }
 
         private void fileSaveToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (tabPage.IsUntitled || !File.Exists(tabPage.FileFullName)) {
+            if (SelectedPage.IsUntitled || !File.Exists(SelectedPage.FileFullName)) {
                 fileSaveAsToolStripMenuItem_Click(sender, e);
             }
             else {
-                tabPage.SaveFile();
+                SelectedPage = SelectedPage.SaveFile();
             }
         }
 
         private void fileSaveAsToolStripMenuItem_Click(object sender, EventArgs e) {
             FileInfo savePath = MessageTools.ShowFileDialog();
             if (savePath != null)
-                tabPage.SaveFile(savePath);
+                SelectedPage = SelectedPage.SaveFile(savePath);
         }
 
         private void fileSaveOpenedToolStripMenuItem_Click(object sender, EventArgs e) {
             foreach (var page in textControl.TabPages) {
                 if (!page.IsUntitled)
-                    page.SaveFile();
+                    page = page.SaveFile();
             }
         }
 
@@ -214,7 +234,7 @@ namespace NotepadApplication {
             if (s_tabSaveForm.ShowDialog() == DialogResult.Yes) {
                 FileInfo savePath = MessageTools.ShowFileDialog();
                 if (savePath != null)
-                    tabPage.SaveFile(savePath);
+                    SelectedPage.SaveFile(savePath);
             }
             NamingManager.RemoveUntitled(textControl.SelectedTab.FileName);
             textControl.Controls.RemoveAt(textControl.SelectedIndex);
@@ -253,6 +273,10 @@ namespace NotepadApplication {
             s_windowCount--;
         }
 
+        private void undoChangesToolStripMenuItem_Click(object sender, EventArgs e) {
+            SelectedPage.Reload();
+        }
+
         private void timer1_Tick(object sender, EventArgs e) {
             if (ConfigurationSetter.AutoSaveEnabled) {
                 fileSaveOpenedToolStripMenuItem_Click(sender, EventArgs.Empty);
@@ -261,8 +285,93 @@ namespace NotepadApplication {
             }
         }
 
-        private void undoChangesToolStripMenuItem_Click(object sender, EventArgs e) {
-            tabPage.Reload();
+        private async void timer2_Tick(object sender, EventArgs e) {
+            int temporarySelectionStart = SelectedPage.TextBox.SelectionStart;
+            int temporarySelectionLength = SelectedPage.TextBox.SelectionLength;
+
+            if (temporaryTextBox.Text == SelectedPage.TextBox.Text) {
+                return;
+            }
+
+            temporaryTextBox.Text = SelectedPage.TextBox.Text;
+            List<SyntaxHighlight.SimpleSyntaxToken> syntaxTokens;
+            syntaxTokens = await SyntaxHighlight.GetSyntaxTokens(SelectedPage.TextBox.Text);
+            foreach (var token in syntaxTokens) {
+                temporaryTextBox.Select(token.Start, token.Length);
+                temporaryTextBox.SelectionColor = token.Color;
+            }
+            SelectedPage.TextBox.Rtf = temporaryTextBox.Rtf;
+
+            SelectedPage.TextBox.SelectionStart = temporarySelectionStart;
+            SelectedPage.TextBox.SelectionLength = temporarySelectionLength;
+        }
+
+        private void timer3_Tick(object sender, EventArgs e) {
+            if (ConfigurationSetter.BackupSaveEnabled)
+                ConfigurationSetter.CreateBackup(SelectedPage);
+        }
+
+        private void textControl_SelectedIndexChanged(object sender, EventArgs e) {
+            timer3.Stop();
+            timer3.Start();
+
+            bool enabledCSharpView = SelectedPage is CSharpTextPage;
+            bool enabledTextView = SelectedPage is AnyFileTextPage;
+            bool enabledRTFView = SelectedPage is RTFTextPage;
+
+            runCSharpFileButton.Visible = enabledCSharpView;
+            runCSharpFileButton.Enabled = enabledCSharpView;
+            buildCSharpFileButton.Visible = enabledCSharpView;
+            buildCSharpFileButton.Enabled = enabledCSharpView;
+
+            boldTextButton.Visible = enabledRTFView;
+            italicTextButton.Visible = enabledRTFView;
+            underlineTextButton.Visible = enabledRTFView;
+            crossoutTextButton.Visible = enabledRTFView;
+
+            if (enabledCSharpView) {
+                timer2.Start();
+            }
+            else {
+                timer2.Stop();
+            }
+        }
+
+        private void runCSharpFileButton_Click(object sender, EventArgs e) {
+            CompilationRunner.Run($"{ SelectedPage.FileFullName[..^3]}.exe");
+        }
+
+        private void buildCSharpFileButton_Click(object sender, EventArgs e) {
+            panel1.Visible = true;
+            if (!SelectedPage.IsSaved)
+                fileSaveToolStripMenuItem_Click(sender, e);
+            if (CompilationRunner.CheckCompiler(ConfigurationSetter.CompilerPath) == "undefined") {
+                textBox1.Text = "Невозможно выполнить сборку, так как путь к csc.exe не задан.";
+                compilerToolStripMenuItem_Click(sender, e);
+            }
+            else {
+                textBox1.Text = CompilationRunner.Build(
+                    ConfigurationSetter.CompilerPath,
+                    SelectedPage.FileFullName,
+                    $"{Path.GetFileNameWithoutExtension(SelectedPage.FileFullName)}.exe"
+                );
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
+            panel1.Visible = false;
+        }
+
+        private async void formatCodeToolStripMenuItem_Click(object sender, EventArgs e) {
+            SelectedPage.TextBox.Text = await SyntaxHighlight.FormatCode(SelectedPage.TextBox.Text);
+        }
+
+        private void MainForm_KeyUp(object sender, KeyEventArgs e) {
+            if (SelectedPage is CSharpTextPage) {
+                char[] autoFormatKeys = { '{', ';' };
+                if (autoFormatKeys.Contains((char)e.KeyCode))
+                    SelectedPage.TextBox.Text = await SyntaxHighlight.FormatCode(SelectedPage.TextBox.Text);
+            }
         }
     }
 }

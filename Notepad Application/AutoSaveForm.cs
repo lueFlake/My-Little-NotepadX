@@ -13,18 +13,6 @@ using WinFormsLibrary.Tools;
 
 namespace NotepadApplication {
     public partial class AutoSaveForm : Form {
-
-        private static ColorStyle _colorStyle = ConfigurationSetter.ColorTheme;
-
-        public ColorStyle FormStyle {
-            get { return _colorStyle; }
-            set {
-                _colorStyle = value;
-                ColorStyle.ChangeColorScheme(_colorStyle, this);
-                ConfigurationSetter.ColorTheme = _colorStyle;
-            }
-        }
-
         public AutoSaveForm() {
             InitializeComponent();
             textBox1.Text = ConfigurationSetter.AutoSaveFrequency.ToString();

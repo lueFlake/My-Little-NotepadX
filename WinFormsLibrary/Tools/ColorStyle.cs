@@ -30,13 +30,10 @@ namespace WinFormsLibrary.Tools
             MainBodyForecolor = Color.FromArgb(color2);
         }
 
-        [JsonConstructor]
-        public ColorStyle(Color MainBodyBackcolor, Color MainBodyForecolor) {
-            this.MainBodyBackcolor = MainBodyBackcolor;
-            this.MainBodyForecolor = MainBodyForecolor;
-        }
-
         public static void ChangeColorScheme(ColorStyle style, Control control) {
+            if (control is Controls.RTFTextPage) {
+                return;
+            }
             control.BackColor = style.MainBodyBackcolor;
             control.ForeColor = style.MainBodyForecolor;
             if (control is MenuStrip) {

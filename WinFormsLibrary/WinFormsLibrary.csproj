@@ -6,4 +6,8 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Controls\AnyTextPage.cs" />
+  </ItemGroup>
+
 </Project>

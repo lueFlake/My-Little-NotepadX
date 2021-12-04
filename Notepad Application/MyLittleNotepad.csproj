@@ -10,8 +10,11 @@
 
   <ItemGroup>
     <Compile Remove="PrevioslyOpened\**" />
+    <Compile Remove="PreviouslyOpened\**" />
     <EmbeddedResource Remove="PrevioslyOpened\**" />
+    <EmbeddedResource Remove="PreviouslyOpened\**" />
     <None Remove="PrevioslyOpened\**" />
+    <None Remove="PreviouslyOpened\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,10 +38,10 @@
   <ItemGroup>
     <Folder Include="logs\" />
     <Folder Include="Backups\" />
-    <Folder Include="PreviouslyOpened\" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CSharpLibrary\CSharpLibrary.csproj" />
     <ProjectReference Include="..\WinFormsLibrary\WinFormsLibrary.csproj" />
   </ItemGroup>
 

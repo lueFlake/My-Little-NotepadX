@@ -9,18 +9,22 @@ using System.IO;
 using WinFormsLibrary.Tools;
 using WinFormsLibrary.Controls;
 using System.Collections.Specialized;
+using System.Drawing;
 
 namespace NotepadApplication {
     internal static class ConfigurationSetter {
         private static Configuration s_config;
         private static KeyValueConfigurationCollection s_settings;
         private static DirectoryInfo s_previouslyOpenedDirectory;
+        private static DirectoryInfo s_backupDirectory;
         private static char s_separator;
         private static string[] s_previouslyOpenedFileKeys;
 
         static ConfigurationSetter() {
             s_previouslyOpenedDirectory = Directory.CreateDirectory("..\\..\\..\\PreviouslyOpened");
             s_previouslyOpenedDirectory.Attributes |= FileAttributes.Hidden;
+            s_backupDirectory = Directory.CreateDirectory("..\\..\\..\\Backups");
+            s_backupDirectory.Attributes |= FileAttributes.Hidden;
 
             s_config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             s_settings = s_config.AppSettings.Settings;
@@ -80,6 +84,7 @@ namespace NotepadApplication {
             get => bool.Parse(GetSettings("AutoSaveEnabled")[0]);
             set => SetSettings("AutoSaveEnabled", value.ToString());
         }
+
         public static bool BackupSaveEnabled {
             get => bool.Parse(GetSettings("AutoSaveEnabled")[0]);
             set => SetSettings("AutoSaveEnabled", value.ToString());
@@ -89,9 +94,15 @@ namespace NotepadApplication {
             get => int.Parse(GetSettings("SelectedIndex")[0]);
             set => SetSettings("SelectedIndex", value.ToString());
         }
+
         public static List<int> AllBusyUntitled {
             get => GetSettings("AllBusyUntitled").Select(int.Parse).ToList();
             set => SetSettings("AllBusyUntitled", value.Select(x => x.ToString()).ToArray());
+        }
+
+        public static string CompilerPath {
+            get => GetSettings("CompilerPath")[0];
+            set => SetSettings("CompilerPath", value);
         }
 
         public static ColorStyle ColorTheme {
@@ -109,6 +120,43 @@ namespace NotepadApplication {
             set => SetSettings("ColorTheme", value.MainBodyBackcolor.ToArgb().ToString(), value.MainBodyForecolor.ToArgb().ToString());
         }
 
+        public static Dictionary<string, Color> SyntaxColors {
+            get {
+                var colors = new Dictionary<string, Color>();
+                var colorData = GetSettings("SyntaxColors");
+                foreach (var item in colorData) {
+                    string[] value = item.Split(":");
+                    colors[value[0]] = Color.FromArgb(int.Parse(value[1]));
+                }
+                return colors;
+            }
+            set {
+                string[] colorData = {};
+                foreach (var item in value) {
+                    colorData.Append($"{item.Key}:{item.Value.ToArgb()}");
+                }
+                SetSettings("SyntaxColors", colorData);
+            }
+        }
+
+        public static Font MainFont {
+            get {
+                return new Font(
+                    GetSettings("MainFont")[0], 
+                    float.Parse(GetSettings("MainFont")[1]), 
+                    (FontStyle)int.Parse(GetSettings("MainFont")[2])
+                );
+            }
+            set {
+                SetSettings(
+                    "MainFont", 
+                    value.FontFamily.Name, 
+                    value.Size.ToString(),
+                    ((int)value.Style).ToString()
+                );
+            }
+        }
+
         public static void Save() {
             s_config.Save(ConfigurationSaveMode.Minimal);
         }
@@ -119,7 +167,7 @@ namespace NotepadApplication {
                 string key = s_previouslyOpenedFileKeys[i];
                 string[] values = GetSettings(key);
                 if (File.Exists(values[1]) || values[1] == "") {
-                    previouslyOpenedFiles.Add(new TextPage(
+                    previouslyOpenedFiles.Add(TextControl.CreateInstance(
                         new FileInfo(values[0]),
                         values[1],
                         values[2],
@@ -143,19 +191,38 @@ namespace NotepadApplication {
         public static void SetPage(TextPage textPage) {
             string newPath;
             if (!textPage.IsSaved) {
-                newPath = s_previouslyOpenedDirectory.FullName + "\\" + NamingManager.GetNewUnsaved();
+                newPath = s_previouslyOpenedDirectory.FullName + "\\" + NamingManager.GetNewUnsavedFile(
+                    Path.GetExtension(textPage.FileFullName == "" ? ".txt" : textPage.FileFullName)
+                );
             }
             else {
                 newPath = textPage.FileFullName;
             }
-            textPage.TextBox.SaveFile(newPath);
-            SetSettings(NamingManager.GetNewPreviouslyOpened(),
+            SetSettings(
+                NamingManager.GetNewPreviouslyOpened(),
                 newPath,
                 textPage.FileFullName,
                 textPage.FileName,
                 textPage.IsSaved.ToString(),
                 textPage.Empty.ToString()
             );
+            textPage.SaveFile(new FileInfo(newPath));
+        }
+
+        public static void CreateBackup(TextPage textPage) {
+            if (!textPage.IsUntitled) {
+                string backupName = NamingManager.GetNewBackupFile(textPage.FileName);
+                string newPath = s_backupDirectory.FullName + "\\" + backupName;
+                SetSettings(
+                    backupName,
+                    newPath,
+                    textPage.FileFullName,
+                    textPage.FileName,
+                    "True",
+                    "False"
+                );
+                textPage.SaveFile(new FileInfo(newPath)); 
+            }
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace WinFormsLibrary.Tools {
     public static class NamingManager {
@@ -45,12 +47,18 @@ namespace WinFormsLibrary.Tools {
             }
         }
 
-        public static string GetNewUnsaved() {
-            return $"unsaved{s_lastUnsafed++}.rtf";
+        public static string GetNewUnsavedFile(string extension) {
+            return $"unsaved{s_lastUnsafed++}{extension}";
         }
 
         public static string GetNewPreviouslyOpened() {
-            return $"PreviouslyOpenedFile{s_previouslyOpened++}.rtf";
+            return $"PreviouslyOpenedFile{s_previouslyOpened++}";
+        }
+
+        public static string GetNewBackupFile(string fileName) {
+            return $"{Path.GetFileNameWithoutExtension(fileName)}_" +
+                $"{DateTime.Now.ToString("dd:MM:yyyy_hh:mm", DateTimeFormatInfo.InvariantInfo)}" +
+                $"{Path.GetExtension(fileName)}";
         }
     }
 }

@@ -45,7 +45,6 @@
             this.button11 = new System.Windows.Forms.Button();
             this.button12 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
-            this.button14 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -116,9 +115,10 @@
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(185, 23);
             this.button5.TabIndex = 7;
+            this.button5.Tag = "keyword";
             this.button5.Text = "Ключевые слова";
             this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.button5.Click += new System.EventHandler(this.button_Click);
             // 
             // button6
             // 
@@ -126,9 +126,10 @@
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(185, 23);
             this.button6.TabIndex = 8;
+            this.button6.Tag = "class name|record name|struct name|type identifiers";
             this.button6.Text = "Объявления типов";
             this.button6.UseVisualStyleBackColor = true;
-            this.button6.Click += new System.EventHandler(this.button6_Click);
+            this.button6.Click += new System.EventHandler(this.button_Click);
             // 
             // button7
             // 
@@ -136,9 +137,10 @@
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(185, 23);
             this.button7.TabIndex = 9;
-            this.button7.Text = "Атрибуты";
+            this.button7.Tag = "enum name";
+            this.button7.Text = "Перечисления";
             this.button7.UseVisualStyleBackColor = true;
-            this.button7.Click += new System.EventHandler(this.button7_Click);
+            this.button7.Click += new System.EventHandler(this.button_Click);
             // 
             // button8
             // 
@@ -146,9 +148,10 @@
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(185, 23);
             this.button8.TabIndex = 10;
+            this.button8.Tag = "method name|method identifier";
             this.button8.Text = "Методы";
             this.button8.UseVisualStyleBackColor = true;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
+            this.button8.Click += new System.EventHandler(this.button_Click);
             // 
             // button9
             // 
@@ -156,9 +159,10 @@
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(185, 23);
             this.button9.TabIndex = 11;
+            this.button9.Tag = "local name|parameter name";
             this.button9.Text = "Переменные и параметры";
             this.button9.UseVisualStyleBackColor = true;
-            this.button9.Click += new System.EventHandler(this.button9_Click);
+            this.button9.Click += new System.EventHandler(this.button_Click);
             // 
             // button10
             // 
@@ -166,9 +170,10 @@
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(185, 23);
             this.button10.TabIndex = 12;
+            this.button10.Tag = "string";
             this.button10.Text = "Строки";
             this.button10.UseVisualStyleBackColor = true;
-            this.button10.Click += new System.EventHandler(this.button10_Click);
+            this.button10.Click += new System.EventHandler(this.button_Click);
             // 
             // button11
             // 
@@ -176,9 +181,10 @@
             this.button11.Name = "button11";
             this.button11.Size = new System.Drawing.Size(185, 23);
             this.button11.TabIndex = 13;
+            this.button11.Tag = "comment";
             this.button11.Text = "Комментарии";
             this.button11.UseVisualStyleBackColor = true;
-            this.button11.Click += new System.EventHandler(this.button11_Click);
+            this.button11.Click += new System.EventHandler(this.button_Click);
             // 
             // button12
             // 
@@ -186,36 +192,26 @@
             this.button12.Name = "button12";
             this.button12.Size = new System.Drawing.Size(185, 23);
             this.button12.TabIndex = 14;
+            this.button12.Tag = "other";
             this.button12.Text = "Другое";
             this.button12.UseVisualStyleBackColor = true;
-            this.button12.Click += new System.EventHandler(this.button12_Click);
+            this.button12.Click += new System.EventHandler(this.button_Click);
             // 
             // button13
             // 
-            this.button13.Location = new System.Drawing.Point(106, 421);
+            this.button13.Location = new System.Drawing.Point(56, 399);
             this.button13.Name = "button13";
-            this.button13.Size = new System.Drawing.Size(91, 23);
+            this.button13.Size = new System.Drawing.Size(185, 23);
             this.button13.TabIndex = 15;
-            this.button13.Text = "Сохранить";
+            this.button13.Text = "Основной Шрифт";
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
-            // 
-            // button14
-            // 
-            this.button14.Location = new System.Drawing.Point(56, 392);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(185, 23);
-            this.button14.TabIndex = 16;
-            this.button14.Text = "Основной шрифт";
-            this.button14.UseVisualStyleBackColor = true;
-            this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
             // StyleForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 456);
-            this.Controls.Add(this.button14);
             this.Controls.Add(this.button13);
             this.Controls.Add(this.button12);
             this.Controls.Add(this.button11);
@@ -261,6 +257,5 @@
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.Button button13;
-        private System.Windows.Forms.Button button14;
     }
 }

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
-using System.Windows.Forms;
 using System.IO;
 using WinFormsLibrary.Tools;
 using WinFormsLibrary.Controls;
-using System.Collections.Specialized;
 using System.Drawing;
 
 namespace NotepadApplication {
+    /// <summary>
+    /// Класс контроля над конфигурацией приложения.
+    /// 
+    /// Все поля/свойства отвечают за взаимодействия с файлом конфигурации.
+    /// </summary>
     internal static class ConfigurationSetter {
         private static Configuration s_config;
         private static KeyValueConfigurationCollection s_settings;
@@ -20,6 +21,9 @@ namespace NotepadApplication {
         private static char s_separator;
         private static string[] s_previouslyOpenedFileKeys;
 
+        /// <summary>
+        /// Конструктор класса.
+        /// </summary>
         static ConfigurationSetter() {
             s_previouslyOpenedDirectory = Directory.CreateDirectory("..\\..\\..\\PreviouslyOpened");
             s_previouslyOpenedDirectory.Attributes |= FileAttributes.Hidden;
@@ -36,10 +40,21 @@ namespace NotepadApplication {
                 ToArray();
         }
 
+        /// <summary>
+        /// Получить значение запрашеваемого параметра.
+        /// </summary>
+        /// <param name="key">Запрашиваемый параметр.</param>
+        /// <returns>Значение параметра.</returns>
         private static string[] GetSettings(string key) {
             return s_settings[key].Value.Split(s_separator);
         }
 
+        
+        /// <summary>
+        /// Установить значение конкретного параметра.
+        /// </summary>
+        /// <param name="key">Изменяемый параметр.</param>
+        /// <param name="value">Новое значение параметра.</param>
         private static void SetSettings(string key, params string[] value) {
             string jointValue = string.Join(s_separator, value);
             if (!s_config.AppSettings.Settings.AllKeys.Contains(key)) {
@@ -50,10 +65,17 @@ namespace NotepadApplication {
             }
         }
 
+        /// <summary>
+        /// Удалить параметр из конфигурации.
+        /// </summary>
+        /// <param name="key">Удаляемый параметр.</param>
         private static void RemoveSettings(string key) {
             s_settings.Remove(key);
         }
 
+        /// <summary>
+        /// Частота автосохранения конфигурации.
+        /// </summary>
         public static object AutoSaveFrequency {
             get => int.Parse(GetSettings("AutoSaveFrequency")[0]);
             set {
@@ -62,6 +84,9 @@ namespace NotepadApplication {
             }
         }
 
+        /// <summary>
+        /// Частота журналирования.
+        /// </summary>
         public static object BackupSaveFrequency {
             get => int.Parse(GetSettings("BackupSaveFrequency")[0]);
             set {
@@ -70,6 +95,13 @@ namespace NotepadApplication {
             }
         }
 
+        /// <summary>
+        /// Валидация значений временных частот.
+        /// </summary>
+        /// <param name="value">Валидируемое значение</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Исключение при валидации null.</exception>
+        /// <exception cref="ArgumentException">Исключение при некорректной валидации.</exception>
         private static string ValidateFrequency(object value) {
             if (value == null)
                 throw new ArgumentNullException($"Значение не может быть null.");
@@ -80,16 +112,25 @@ namespace NotepadApplication {
             return valueString;
         }
 
+        /// <summary>
+        /// Проверка на автосохранение.
+        /// </summary>
         public static bool AutoSaveEnabled {
             get => bool.Parse(GetSettings("AutoSaveEnabled")[0]);
             set => SetSettings("AutoSaveEnabled", value.ToString());
         }
 
+        /// <summary>
+        /// Проверка на журналирование.
+        /// </summary>
         public static bool BackupSaveEnabled {
             get => bool.Parse(GetSettings("AutoSaveEnabled")[0]);
             set => SetSettings("AutoSaveEnabled", value.ToString());
         }
 
+        /// <summary>
+        /// Индекс открытой вкладки.
+        /// </summary>
         public static int SelectedIndex {
             get => int.Parse(GetSettings("SelectedIndex")[0]);
             set => SetSettings("SelectedIndex", value.ToString());
@@ -107,11 +148,17 @@ namespace NotepadApplication {
             set => SetSettings("AllBusyUntitled", value.Select(x => x.ToString()).ToArray());
         }
 
+        /// <summary>
+        /// Путь к выбранному компилятору.
+        /// </summary>
         public static string CompilerPath {
             get => GetSettings("CompilerPath")[0];
             set => SetSettings("CompilerPath", value);
         }
 
+        /// <summary>
+        /// Цветовая расцветка.
+        /// </summary>
         public static ColorStyle ColorTheme {
             get {
                 if (int.TryParse(GetSettings("ColorTheme")[0], out _)) {
@@ -127,6 +174,10 @@ namespace NotepadApplication {
             set => SetSettings("ColorTheme", value.MainBodyBackcolor.ToArgb().ToString(), value.MainBodyForecolor.ToArgb().ToString());
         }
 
+
+        /// <summary>
+        /// Цвета подсветки синтаксиса.
+        /// </summary>
         public static Dictionary<string, Color> SyntaxColors {
             get {
                 var colors = new Dictionary<string, Color>();
@@ -138,14 +189,18 @@ namespace NotepadApplication {
                 return colors;
             }
             set {
-                string[] colorData = { };
+                var colorData = new string[value.Count];
+                int index = 0;
                 foreach (var item in value) {
-                    colorData.Append($"{item.Key}:{item.Value.ToArgb()}");
+                    colorData[index++] = $"{item.Key}:{item.Value.ToArgb()}";
                 }
                 SetSettings("SyntaxColors", colorData);
             }
         }
 
+        /// <summary>
+        /// Основной шрифт редактора.
+        /// </summary>
         public static Font MainFont {
             get {
                 return new Font(
@@ -164,10 +219,17 @@ namespace NotepadApplication {
             }
         }
 
+        /// <summary>
+        /// Сохранить конфигурацию.
+        /// </summary>
         public static void Save() {
             s_config.Save(ConfigurationSaveMode.Minimal);
         }
 
+        /// <summary>
+        /// Получить список вкладок из прошлого сеанса.
+        /// </summary>
+        /// <returns>Список вкладок (TextPage)</returns>
         public static List<TextPage> GetPreviouslyOpenedFiles() {
             var previouslyOpenedFiles = new List<TextPage>();
             for (var i = 0; i < s_previouslyOpenedFileKeys.Length; i++) {
@@ -186,6 +248,9 @@ namespace NotepadApplication {
             return previouslyOpenedFiles;
         }
 
+        /// <summary>
+        /// Очистить хранилище файлов прошлого сеанса.
+        /// </summary>
         public static void ClearPreviouslyOpened() {
             foreach (var settings in s_previouslyOpenedFileKeys) {
                 RemoveSettings(settings);
@@ -195,7 +260,11 @@ namespace NotepadApplication {
             }
         }
 
-        public static void SetPage(TextPage textPage) {
+        /// <summary>
+        /// Сохранение вкладки в конфигурации и локальное хранилище.
+        /// </summary>
+        /// <param name="textPage">Сохраняемая вкладка.</param>
+        public static void SavePage(TextPage textPage) {
             string newPath;
             if (!textPage.IsSaved) {
                 newPath = s_previouslyOpenedDirectory.FullName + "\\" + NamingManager.GetNewUnsavedFile(
@@ -216,6 +285,10 @@ namespace NotepadApplication {
             textPage.SaveFile(new FileInfo(newPath));
         }
 
+        /// <summary>
+        /// Создание и сохранение отката файла вкладки.
+        /// </summary>
+        /// <param name="textPage">Сохраняемая вкладка.</param>
         public static void CreateBackup(TextPage textPage) {
             if (!textPage.IsUntitled) {
                 string backupSubdirectoryName = textPage.FileFullName.GetHashCode().ToString();

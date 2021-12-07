@@ -1,15 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinFormsLibrary.Tools {
+    /// <summary>
+    /// Класс для создания диалогов с пользователем.
+    /// </summary>
     public static class MessageTools {
+        /// <summary>
+        /// Файловый диалог.
+        /// </summary>
         private static SaveFileDialog s_dialog;
 
+        /// <summary>
+        /// Конструктор класса.
+        /// </summary>
         static MessageTools() {
             s_dialog = new SaveFileDialog() {
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -20,6 +25,12 @@ namespace WinFormsLibrary.Tools {
                 FilterIndex = 2
             };
         }
+
+        /// <summary>
+        /// Вывод сообщения об исключении.
+        /// </summary>
+        /// <param name="localLine">Сообщение об исключении.</param>
+        /// <param name="ex">Вызванное исключение.</param>
         public static void ShowException(string localLine, Exception ex) {
             string EOL = Environment.NewLine;
             MessageBox.Show(
@@ -30,7 +41,11 @@ namespace WinFormsLibrary.Tools {
                 );
         }
 
-        public static FileInfo ShowFileDialog() {
+        /// <summary>
+        /// Вывод диалога сохранения документа.
+        /// </summary>
+        /// <returns>Путь для сохранения.</returns>
+        public static FileInfo? ShowSaveFileDialog() {
             if (s_dialog.ShowDialog() != DialogResult.OK) {
                 return null;
             }

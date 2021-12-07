@@ -1,36 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using WinFormsLibrary.Controls;
 
 namespace WinFormsLibrary.Tools
 {
+    /// <summary>
+    /// Класс контролирующий цветовую расцветку интерфейса.
+    /// </summary>
     public class ColorStyle
     {
         
+        /// <summary>
+        /// Основной цвет (Задний фон).
+        /// </summary>
         public Color MainBodyBackcolor { get; set; } = Color.FromName("Control");
+        /// <summary>
+        /// Второстепенный цвет (Цвет текста).
+        /// </summary>
         public Color MainBodyForecolor { get; set; } = Color.FromName("Black");
 
+        /// <summary>
+        /// Конструктор класса.
+        /// </summary>
+        /// <param name="color1">Название основного цвета.</param>
+        /// <param name="color2">Название второстепенного цвета.</param>
         public ColorStyle(string color1, string color2) {
             MainBodyBackcolor = Color.FromName(color1);
             MainBodyForecolor = Color.FromName(color2);
         }
-
+        /// <summary>
+        /// Конструктор класса.
+        /// </summary>
+        /// <param name="color1">Значения RGB основного цвета.</param>
+        /// <param name="color2">Значения RGB второстепенного цвета.</param>
         public ColorStyle((int, int, int) color1, (int, int, int) color2) {
             MainBodyBackcolor = Color.FromArgb(color1.Item1, color1.Item2, color1.Item3);
             MainBodyForecolor = Color.FromArgb(color2.Item1, color2.Item2, color2.Item3);
         }
-
+        /// <summary>
+        /// Конструктор класса.
+        /// </summary>
+        /// <param name="color1">Значение argb+ основного цвета.</param>
+        /// <param name="color2">Значение argb+ второстепенного цвета.</param>
         public ColorStyle(int color1, int color2) {
             MainBodyBackcolor = Color.FromArgb(color1);
             MainBodyForecolor = Color.FromArgb(color2);
         }
 
+        /// <summary>
+        /// Изменение цвета элемента интерфейса.
+        /// </summary>
+        /// <param name="style">Цветовая расцветка.</param>
+        /// <param name="control">Элемент интерфейса.</param>
         public static void ChangeColorScheme(ColorStyle style, Control control) {
             if (control is TextPage && ((TextPage)control).FileExtension == ".rtf") {
                 return;
@@ -54,6 +75,11 @@ namespace WinFormsLibrary.Tools
             }
         }
 
+        /// <summary>
+        /// Изменение цвета предмета ToolStrip.
+        /// </summary>
+        /// <param name="style">Цветовая расцветка.</param>
+        /// <param name="control">Предмет ToolStrip.</param>
         public static void ChangeColorScheme(ColorStyle style, ToolStripMenuItem item) {
             item.BackColor = style.MainBodyBackcolor;
             item.ForeColor = style.MainBodyForecolor;

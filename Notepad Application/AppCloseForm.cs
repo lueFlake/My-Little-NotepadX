@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinFormsLibrary.Controls;
 using WinFormsLibrary.Tools;
 
 namespace NotepadApplication {
+    /// <summary>
+    /// Форма, вызываемая при закрытии текущей главной формы.
+    /// </summary>
     public partial class AppCloseForm : Form {
+        /// <summary>
+        /// Список несохраненных страниц.
+        /// </summary>
         private List<TextPage> _textPages;
 
-        public string fileLabel {
-            get  => label2.Text; 
-            set => label2.Text = value; 
-        }
-
+        /// <summary>
+        /// Конструктор формы.
+        /// </summary>
+        /// <param name="textPages">Документы, требующие сохранения.</param>
         public AppCloseForm(List<TextPage> textPages) {
             InitializeComponent();
             _textPages = textPages;
@@ -27,16 +26,31 @@ namespace NotepadApplication {
                 listBox1.Items.Add(page.FileName);
         }
 
+        /// <summary>
+        /// Отмена закрытия формы.
+        /// </summary>
+        /// <param name="sender">Издатель.</param>
+        /// <param name="e">Аргументы события.</param>
         private void button3_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.Cancel;
             Close();
         }
 
+        /// <summary>
+        /// Выбор несохранения оставшихся открытых документов.
+        /// </summary>
+        /// <param name="sender">Издатель.</param>
+        /// <param name="e">Аргументы события.</param>
         private void button2_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.Ignore;
             Close();
         }
 
+        /// <summary>
+        /// Сохранение выбранной формы.
+        /// </summary>
+        /// <param name="sender">Издатель.</param>
+        /// <param name="e">Аргументы события.</param>
         private void button1_Click(object sender, EventArgs e) {
             int index = listBox1.SelectedIndex;
 
@@ -47,7 +61,7 @@ namespace NotepadApplication {
 
             FileInfo savePath;
             if (!File.Exists(_textPages[index].FileFullName)) {
-                savePath = MessageTools.ShowFileDialog();
+                savePath = MessageTools.ShowSaveFileDialog();
             }
             else {
                 savePath = new FileInfo(_textPages[index].FileFullName);
@@ -64,6 +78,11 @@ namespace NotepadApplication {
             }
         }
 
+        /// <summary>
+        /// Инициализация формы на экран.
+        /// </summary>
+        /// <param name="sender">Издатель.</param>
+        /// <param name="e">Аргументы события.</param>
         private void AppCloseForm_Load(object sender, EventArgs e) {
             ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
         }

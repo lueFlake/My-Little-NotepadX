@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace CSharpLibrary {
     public static class SyntaxHighlight {
-        public static Dictionary<string, Color> SyntaxTokenColors { get; } = new();
+        public static Dictionary<string, Color> SyntaxTokenColors { get; set; } = new();
         private static MefHostServices s_host = MefHostServices.Create(MefHostServices.DefaultAssemblies);
         private static AdhocWorkspace s_workspace = new(s_host);
 
         static SyntaxHighlight() {
             // Подсветка ключевых слов.
-            SyntaxTokenColors["keyword"] = Color.FromArgb(86, 156, 214);
+            /*SyntaxTokenColors["keyword"] = Color.FromArgb(86, 156, 214);
             // Подсветка названий при объявлении типов.
             SyntaxTokenColors["class name"] = Color.FromArgb(164, 0, 182);
             SyntaxTokenColors["record name"] = Color.FromArgb(164, 0, 182);
@@ -37,7 +37,7 @@ namespace CSharpLibrary {
             // Подсветка комментариев.
             SyntaxTokenColors["comment"] = Color.FromArgb(87, 166, 74);
             // Подсветка других токенов.
-            SyntaxTokenColors["other"] = Color.FromArgb(255, 255, 255);
+            SyntaxTokenColors["other"] = Color.FromArgb(255, 255, 255);*/
         }
 
         public struct SimpleSyntaxToken {

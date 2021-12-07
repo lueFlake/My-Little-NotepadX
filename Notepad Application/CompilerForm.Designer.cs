@@ -103,6 +103,7 @@
             this.MinimizeBox = false;
             this.Name = "CompilerForm";
             this.Text = "Настройки компилятора";
+            this.Load += new System.EventHandler(this.CompilleForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

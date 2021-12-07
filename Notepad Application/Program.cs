@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace NotepadApplication {
@@ -8,10 +9,15 @@ namespace NotepadApplication {
         /// </summary>
         [STAThread]
         static void Main() {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            try {
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
+            }
+            catch (Exception ex) {
+                WinFormsLibrary.Tools.MessageTools.ShowException("????????? ??????:", ex);
+            }
         }
     }
 }

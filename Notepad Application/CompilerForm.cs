@@ -41,7 +41,7 @@ namespace NotepadApplication {
             label3.Text = CompilationRunner.CheckCompiler(textBox1.Text);
             if (label3.Text != "undefined") {
                 ConfigurationSetter.CompilerPath = textBox1.Text;
-                this.Close();
+                Close();
             }
             else {
                 MessageBox.Show("Выбран недействительный путь к csc.exe");

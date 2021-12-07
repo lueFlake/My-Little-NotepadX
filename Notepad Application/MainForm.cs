@@ -15,53 +15,65 @@ using System.Threading.Tasks;
 
 namespace NotepadApplication {
     public partial class MainForm : Form {
-        private TextPage SelectedPage {
-            get => textControl.SelectedTab;
-            set => textControl.TabPages[textControl.SelectedIndex] = value;
-        }
+        private TextPage SelectedPage => textControl.SelectedTab;
 
-        private const int V = 200;
         private static readonly AutoSaveForm s_autoSaveForm = new();
         private static readonly TabCloseForm s_tabSaveForm = new();
         private static readonly StyleForm s_styleForm = new();
         private static readonly CompilerForm s_compilerForm = new();
+        private static readonly int s_maxTabCount = 20;
         private static int s_windowCount = 0;
         private static ColorStyle s_colorStyle = ConfigurationSetter.ColorTheme;
-        private RichTextBox temporaryTextBox;
+        private static Font s_mainFont = ConfigurationSetter.MainFont;
+        private RichTextBox _temporaryTextBox;
 
         public ColorStyle FormStyle {
             get => s_colorStyle;
             set {
                 s_colorStyle = value;
-                ColorStyle.ChangeColorScheme(s_colorStyle, this);
                 TextPage.TextBoxDefaultColor = value;
+                ColorStyle.ChangeColorScheme(s_colorStyle, this);
                 ConfigurationSetter.ColorTheme = s_colorStyle;
             }
         }
 
+        public Font FormMainFont {
+            get => s_mainFont;
+            set {
+                s_mainFont = value;
+                TextPage.TextBoxDefaultFont = value;
+                foreach (var page in textControl.TabPages) {
+                    if (page.FileExtension != ".rtf")
+                        page.TextBox.Font = s_mainFont;
+                }
+                _temporaryTextBox.Font = s_mainFont;
+                ConfigurationSetter.MainFont = s_mainFont;
+            }
+        }
+
         public MainForm(bool empty = false) {
-            s_windowCount++;
             InitializeComponent();
+            s_windowCount++;
+
+            _temporaryTextBox = TextPage.CreateTextBox();
+            _temporaryTextBox.BackColor = ConfigurationSetter.ColorTheme.MainBodyBackcolor;
+            _temporaryTextBox.ForeColor = ConfigurationSetter.ColorTheme.MainBodyForecolor;
+
+            FormStyle = ConfigurationSetter.ColorTheme;
+            FormMainFont = ConfigurationSetter.MainFont;
             timer1.Interval = 60000 * (int)ConfigurationSetter.AutoSaveFrequency;
             timer3.Interval = 60000 * (int)ConfigurationSetter.BackupSaveFrequency;
+
             TextPage.ContextMenuStripForTextBoxes = contextMenuStrip2;
-            FormStyle = ConfigurationSetter.ColorTheme;
             if (!empty) {
                 InitializePrevioslyOpened();
             }
             else {
                 textControl.TabPages.Add();
             }
-            //backgroundWorker1.RunWorkerAsync();
             NamingManager.AllBusyUntitled = ConfigurationSetter.AllBusyUntitled;
             textControl_SelectedIndexChanged(this, EventArgs.Empty);
-
-            temporaryTextBox = new RichTextBox() {
-                BackColor = SelectedPage.TextBox.BackColor,
-                ForeColor = SelectedPage.TextBox.ForeColor,
-                Dock = DockStyle.Fill,
-                Multiline = true
-            };
+            //backgroundWorker1.RunWorkerAsync();
         }
 
         private void InitializePrevioslyOpened() {
@@ -159,7 +171,8 @@ namespace NotepadApplication {
 
         private void settingsColorSchemeToolStripMenuItem_Click(object sender, EventArgs e) {
             s_styleForm.ShowDialog();
-            FormStyle = s_styleForm.Callback;
+            FormStyle = s_styleForm.ColorStyleCallback;
+            FormMainFont = s_styleForm.FontCallback;
         }
 
         // Конец меню настроек.
@@ -194,20 +207,20 @@ namespace NotepadApplication {
                 fileSaveAsToolStripMenuItem_Click(sender, e);
             }
             else {
-                SelectedPage = SelectedPage.SaveFile();
+                SelectedPage.SaveFile();
             }
         }
 
         private void fileSaveAsToolStripMenuItem_Click(object sender, EventArgs e) {
             FileInfo savePath = MessageTools.ShowFileDialog();
             if (savePath != null)
-                SelectedPage = SelectedPage.SaveFile(savePath);
+                SelectedPage.SaveFile(savePath);
         }
 
         private void fileSaveOpenedToolStripMenuItem_Click(object sender, EventArgs e) {
             foreach (var page in textControl.TabPages) {
                 if (!page.IsUntitled)
-                    page = page.SaveFile();
+                    page.SaveFile();
             }
         }
 
@@ -289,18 +302,18 @@ namespace NotepadApplication {
             int temporarySelectionStart = SelectedPage.TextBox.SelectionStart;
             int temporarySelectionLength = SelectedPage.TextBox.SelectionLength;
 
-            if (temporaryTextBox.Text == SelectedPage.TextBox.Text) {
+            if (_temporaryTextBox.Text == SelectedPage.TextBox.Text) {
                 return;
             }
 
-            temporaryTextBox.Text = SelectedPage.TextBox.Text;
+            _temporaryTextBox.Text = SelectedPage.TextBox.Text;
             List<SyntaxHighlight.SimpleSyntaxToken> syntaxTokens;
             syntaxTokens = await SyntaxHighlight.GetSyntaxTokens(SelectedPage.TextBox.Text);
             foreach (var token in syntaxTokens) {
-                temporaryTextBox.Select(token.Start, token.Length);
-                temporaryTextBox.SelectionColor = token.Color;
+                _temporaryTextBox.Select(token.Start, token.Length);
+                _temporaryTextBox.SelectionColor = token.Color;
             }
-            SelectedPage.TextBox.Rtf = temporaryTextBox.Rtf;
+            SelectedPage.TextBox.Rtf = _temporaryTextBox.Rtf;
 
             SelectedPage.TextBox.SelectionStart = temporarySelectionStart;
             SelectedPage.TextBox.SelectionLength = temporarySelectionLength;
@@ -312,22 +325,36 @@ namespace NotepadApplication {
         }
 
         private void textControl_SelectedIndexChanged(object sender, EventArgs e) {
+            if (textControl.TabCount == 0) {
+                Close();
+                return;
+            }
+
+            if (textControl.TabCount >= s_maxTabCount) {
+                MessageBox.Show($"Превышено доступное количество вкладок({s_maxTabCount})");
+                textControl.TabPages.RemoveAt(textControl.SelectedIndex);
+                return;
+            }
+
             timer3.Stop();
             timer3.Start();
 
-            bool enabledCSharpView = SelectedPage is CSharpTextPage;
-            bool enabledTextView = SelectedPage is AnyFileTextPage;
-            bool enabledRTFView = SelectedPage is RTFTextPage;
+            bool enabledCSharpView = SelectedPage.FileExtension == ".cs";
+            bool enabledRTFView = SelectedPage.FileExtension == ".rtf";
+            bool enabledTextView = SelectedPage.FileExtension == ".txt";
 
             runCSharpFileButton.Visible = enabledCSharpView;
-            runCSharpFileButton.Enabled = enabledCSharpView;
             buildCSharpFileButton.Visible = enabledCSharpView;
-            buildCSharpFileButton.Enabled = enabledCSharpView;
+            formatCodeToolStripMenuItem.Enabled = enabledCSharpView;
 
             boldTextButton.Visible = enabledRTFView;
             italicTextButton.Visible = enabledRTFView;
             underlineTextButton.Visible = enabledRTFView;
             crossoutTextButton.Visible = enabledRTFView;
+
+            contextFontToolStripMenuItem.Enabled = enabledRTFView;
+            formatFonlToolStripMenuItem.Enabled = enabledRTFView;
+
 
             if (enabledCSharpView) {
                 timer2.Start();
@@ -338,7 +365,7 @@ namespace NotepadApplication {
         }
 
         private void runCSharpFileButton_Click(object sender, EventArgs e) {
-            CompilationRunner.Run($"{ SelectedPage.FileFullName[..^3]}.exe");
+            CompilationRunner.Run($"{SelectedPage.FileFullName[..^3]}.exe");
         }
 
         private void buildCSharpFileButton_Click(object sender, EventArgs e) {
@@ -362,15 +389,16 @@ namespace NotepadApplication {
             panel1.Visible = false;
         }
 
-        private async void formatCodeToolStripMenuItem_Click(object sender, EventArgs e) {
-            SelectedPage.TextBox.Text = await SyntaxHighlight.FormatCode(SelectedPage.TextBox.Text);
+        private void formatCodeToolStripMenuItem_Click(object sender, EventArgs e) {
+            SelectedPage.TextBox.Text = SyntaxHighlight.FormatCode(SelectedPage.TextBox.Text);
         }
 
-        private void MainForm_KeyUp(object sender, KeyEventArgs e) {
-            if (SelectedPage is CSharpTextPage) {
-                char[] autoFormatKeys = { '{', ';' };
-                if (autoFormatKeys.Contains((char)e.KeyCode))
-                    SelectedPage.TextBox.Text = await SyntaxHighlight.FormatCode(SelectedPage.TextBox.Text);
+        private void chooseVersionToolStripMenuItem_Click(object sender, EventArgs e) {
+            var backupLoadForm = new BacupLoadForm(SelectedPage);
+            if (backupLoadForm.ShowDialog() == DialogResult.OK) {
+                FileInfo backup = backupLoadForm.Callback;
+                SelectedPage.TextBox.Text = File.ReadAllText(backup.FullName);
+                SelectedPage.SaveFile();
             }
         }
     }

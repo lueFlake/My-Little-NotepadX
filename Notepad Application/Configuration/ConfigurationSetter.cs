@@ -96,7 +96,14 @@ namespace NotepadApplication {
         }
 
         public static List<int> AllBusyUntitled {
-            get => GetSettings("AllBusyUntitled").Select(int.Parse).ToList();
+            get {
+                try {
+                    return GetSettings("AllBusyUntitled").Select(int.Parse).ToList();
+                }
+                catch {
+                    return new List<int>() { 1 };
+                }
+            }
             set => SetSettings("AllBusyUntitled", value.Select(x => x.ToString()).ToArray());
         }
 
@@ -131,7 +138,7 @@ namespace NotepadApplication {
                 return colors;
             }
             set {
-                string[] colorData = {};
+                string[] colorData = { };
                 foreach (var item in value) {
                     colorData.Append($"{item.Key}:{item.Value.ToArgb()}");
                 }
@@ -142,15 +149,15 @@ namespace NotepadApplication {
         public static Font MainFont {
             get {
                 return new Font(
-                    GetSettings("MainFont")[0], 
-                    float.Parse(GetSettings("MainFont")[1]), 
+                    GetSettings("MainFont")[0],
+                    float.Parse(GetSettings("MainFont")[1]),
                     (FontStyle)int.Parse(GetSettings("MainFont")[2])
                 );
             }
             set {
                 SetSettings(
-                    "MainFont", 
-                    value.FontFamily.Name, 
+                    "MainFont",
+                    value.FontFamily.Name,
                     value.Size.ToString(),
                     ((int)value.Style).ToString()
                 );
@@ -167,7 +174,7 @@ namespace NotepadApplication {
                 string key = s_previouslyOpenedFileKeys[i];
                 string[] values = GetSettings(key);
                 if (File.Exists(values[1]) || values[1] == "") {
-                    previouslyOpenedFiles.Add(TextControl.CreateInstance(
+                    previouslyOpenedFiles.Add(new TextPage(
                         new FileInfo(values[0]),
                         values[1],
                         values[2],
@@ -211,8 +218,11 @@ namespace NotepadApplication {
 
         public static void CreateBackup(TextPage textPage) {
             if (!textPage.IsUntitled) {
+                string backupSubdirectoryName = textPage.FileFullName.GetHashCode().ToString();
+                backupSubdirectoryName = $"{s_backupDirectory.FullName}/{backupSubdirectoryName}";
+                DirectoryInfo backupSubdirectory = Directory.CreateDirectory(backupSubdirectoryName);
                 string backupName = NamingManager.GetNewBackupFile(textPage.FileName);
-                string newPath = s_backupDirectory.FullName + "\\" + backupName;
+                string newPath = $"{backupSubdirectoryName}/{backupName}";
                 SetSettings(
                     backupName,
                     newPath,
@@ -221,7 +231,7 @@ namespace NotepadApplication {
                     "True",
                     "False"
                 );
-                textPage.SaveFile(new FileInfo(newPath)); 
+                textPage.SaveFile(new FileInfo(newPath), false);
             }
         }
     }

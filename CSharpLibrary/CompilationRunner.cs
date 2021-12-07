@@ -8,36 +8,35 @@ using System.Diagnostics;
 namespace CSharpLibrary {
     public class CompilationRunner {
 
-        private static Process compiler = new();
+        private static Process s_compiler = new();
 
         public static string Build(string path, string source, string executable) {
-            compiler.StartInfo.UseShellExecute = false;
-            compiler.StartInfo.CreateNoWindow = true;
-            compiler.StartInfo.RedirectStandardOutput = true;
-            compiler.StartInfo.RedirectStandardError = true;
-
-            compiler.StartInfo.FileName = path;
-            compiler.StartInfo.Arguments = $"{source} /t:exe /out:{executable}";
+            s_compiler.StartInfo.UseShellExecute = false;
+            s_compiler.StartInfo.CreateNoWindow = true;
+            s_compiler.StartInfo.RedirectStandardOutput = true;
+            s_compiler.StartInfo.RedirectStandardError = true;
+            s_compiler.StartInfo.FileName = path;
+            s_compiler.StartInfo.Arguments = $"{source} /t:exe /out:{executable}";
 
             try {
-                compiler.Start();
+                s_compiler.Start();
             }
             catch {
                 return null;
             }
 
-            return compiler.StandardOutput.ReadToEnd();
+            return s_compiler.StandardOutput.ReadToEnd();
         }
 
         public static bool Run(string executable) {
-            compiler.StartInfo.FileName = "CMD.EXE";
-            compiler.StartInfo.Arguments = $"/K {executable}";
-            compiler.StartInfo.RedirectStandardOutput = false;
-            compiler.StartInfo.CreateNoWindow = false;
+            s_compiler.StartInfo.FileName = "CMD.EXE";
+            s_compiler.StartInfo.Arguments = $"/K {executable}";
+            s_compiler.StartInfo.RedirectStandardOutput = false;
+            s_compiler.StartInfo.CreateNoWindow = false;
 
 
             try {
-                compiler.Start();
+                s_compiler.Start();
             }
             catch { 
                 return false; 
@@ -47,21 +46,40 @@ namespace CSharpLibrary {
         }
 
         public static string CheckCompiler(string path) {
-            compiler.StartInfo.FileName = path;
-            compiler.StartInfo.UseShellExecute = false;
-            compiler.StartInfo.RedirectStandardOutput = true;
-            compiler.StartInfo.CreateNoWindow = true;
+            s_compiler.StartInfo.FileName = path;
+            s_compiler.StartInfo.UseShellExecute = false;
+            s_compiler.StartInfo.RedirectStandardOutput = true;
+            s_compiler.StartInfo.CreateNoWindow = true;
             try {
-                compiler.Start();
+                s_compiler.Start();
             }
             catch {
                 return "undefined";
             }
-            var output = compiler.StandardOutput.ReadToEnd();
-            if (!output.StartsWith("Microsoft (R) Visual C# Compiler"))
+            string output = "";
+            bool completed = ExecuteWithTimeLimit(TimeSpan.FromMinutes(1), () => {
+                output = s_compiler.StandardOutput.ReadToEnd();
+            });
+
+            if (!completed)
                 return "undefined";
             return output.Split(" ")[6];
         }
 
+        private static bool ExecuteWithTimeLimit(TimeSpan timeSpan, Action codeBlock) {
+            try {
+                Task task = Task.Factory.StartNew(() => codeBlock());
+                task.Wait(timeSpan);
+                return task.IsCompleted;
+            }
+            catch (AggregateException ae) {
+                throw ae.InnerExceptions[0];
+            }
+        }
+
+        private static string ChangeEncoding(string str, Encoding en1, Encoding en2) {
+            byte[] bytes = en1.GetBytes(str);
+            return en2.GetString(bytes);
+        }
     }
 }

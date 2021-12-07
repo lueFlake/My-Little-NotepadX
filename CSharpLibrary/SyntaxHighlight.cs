@@ -13,9 +13,8 @@ using System.Threading.Tasks;
 namespace CSharpLibrary {
     public static class SyntaxHighlight {
         public static Dictionary<string, Color> SyntaxTokenColors { get; } = new();
-        private static Color OtherTokenColor;
-        private static MefHostServices host = MefHostServices.Create(MefHostServices.DefaultAssemblies);
-        private static AdhocWorkspace workspace = new(host);
+        private static MefHostServices s_host = MefHostServices.Create(MefHostServices.DefaultAssemblies);
+        private static AdhocWorkspace s_workspace = new(s_host);
 
         static SyntaxHighlight() {
             // Подсветка ключевых слов.
@@ -62,7 +61,7 @@ namespace CSharpLibrary {
             }
         }
 
-        public async static Task<string> FormatCode(string code) {
+        public static string FormatCode(string code) {
             SourceText sourceText = SourceText.From(code);
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
             CompilationUnitSyntax root = syntaxTree.GetCompilationUnitRoot();
@@ -70,38 +69,40 @@ namespace CSharpLibrary {
         }
 
         public async static Task<List<SimpleSyntaxToken>> GetSyntaxTokens(string code) {
-            SourceText sourceText = SourceText.From(code);
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
-            CSharpCompilation compilation = CSharpCompilation.Create("Dummy").AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location)).AddSyntaxTrees(syntaxTree);
-            SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
-
-            List<ClassifiedSpan> classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, new TextSpan(0, code.Length), workspace).ToList();
             var result = new List<SimpleSyntaxToken>();
-            classifiedSpans = classifiedSpans.Where(s => !ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType)).ToList();
-            for (var i = 0; i < classifiedSpans.Count; i++) {
-                var currentSpan = classifiedSpans[i];
-                var previousSpan = classifiedSpans[Math.Max(0, i - 1)];
-                var nextSpan = classifiedSpans[Math.Min(i + 1, classifiedSpans.Count - 1)];
+            await Task.Run(() => {
+                SourceText sourceText = SourceText.From(code);
+                SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+                CSharpCompilation compilation = CSharpCompilation.Create("Dummy").AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location)).AddSyntaxTrees(syntaxTree);
+                SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                string classifiedSpanType = currentSpan.ClassificationType;
-                if (classifiedSpanType == "identifier" &&
-                    sourceText.ToString(nextSpan.TextSpan) == "(" &&
-                    sourceText.ToString(previousSpan.TextSpan) != "new") {
+                List<ClassifiedSpan> classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, new TextSpan(0, code.Length), s_workspace).ToList();
+                classifiedSpans = classifiedSpans.Where(s => !ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType)).ToList();
+                for (var i = 0; i < classifiedSpans.Count; i++) {
+                    var currentSpan = classifiedSpans[i];
+                    var previousSpan = classifiedSpans[Math.Max(0, i - 1)];
+                    var nextSpan = classifiedSpans[Math.Min(i + 1, classifiedSpans.Count - 1)];
 
-                    classifiedSpanType = "method identifier";
+                    string classifiedSpanType = currentSpan.ClassificationType;
+                    if (classifiedSpanType == "identifier" &&
+                        sourceText.ToString(nextSpan.TextSpan) == "(" &&
+                        sourceText.ToString(previousSpan.TextSpan) != "new") {
+
+                        classifiedSpanType = "method identifier";
+                    }
+                    else if (classifiedSpanType == "identifier") {
+                        classifiedSpanType = "type identifier";
+                    }
+
+                    TextSpan position = currentSpan.TextSpan;
+                    result.Add(new SimpleSyntaxToken(
+                        int.Parse(position.Start.ToString()),
+                        int.Parse(position.End.ToString()) - int.Parse(position.Start.ToString()) + 1,
+                        classifiedSpanType,
+                        sourceText.ToString(position)
+                    ));
                 }
-                else if (classifiedSpanType == "identifier") {
-                    classifiedSpanType = "type identifier";
-                }
-
-                TextSpan position = currentSpan.TextSpan;
-                result.Add(new SimpleSyntaxToken(
-                    int.Parse(position.Start.ToString()),
-                    int.Parse(position.End.ToString()) - int.Parse(position.Start.ToString()) + 1,
-                    classifiedSpanType,
-                    sourceText.ToString(position)
-                ));
-            }
+            });
             return result;
         }
     }

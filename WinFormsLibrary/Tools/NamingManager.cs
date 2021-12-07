@@ -57,7 +57,7 @@ namespace WinFormsLibrary.Tools {
 
         public static string GetNewBackupFile(string fileName) {
             return $"{Path.GetFileNameWithoutExtension(fileName)}_" +
-                $"{DateTime.Now.ToString("dd:MM:yyyy_hh:mm", DateTimeFormatInfo.InvariantInfo)}" +
+                $"{DateTime.Now.ToString("dd-MM-yyyy_hh-mm", DateTimeFormatInfo.InvariantInfo)}" +
                 $"{Path.GetExtension(fileName)}";
         }
     }

@@ -29,7 +29,7 @@ namespace WinFormsLibrary.Controls {
 
             public int Add(FileInfo file = null) {
                 try {
-                    var textPage = CreateInstance(file);
+                    var textPage = new TextPage(file);
 
                     if (!Contains(textPage)) {
                         Add(textPage);
@@ -49,7 +49,7 @@ namespace WinFormsLibrary.Controls {
             }
 
             public int Add() {
-                var textPage = CreateInstance();
+                var textPage = new TextPage();
                 Add(textPage);
                 return Count - 1;
             }
@@ -79,25 +79,6 @@ namespace WinFormsLibrary.Controls {
                 e.Bounds.Left + (e.Bounds.Width - sz.Width) / 2,
                 e.Bounds.Top + (e.Bounds.Height - sz.Height) / 2 + 1
             );
-        }
-
-        private static TextPage CreateInstance(FileInfo? fileInfo = null) {
-            if (fileInfo == null) {
-                return new AnyFileTextPage(fileInfo);
-            }
-            return fileInfo.Extension switch {
-                ".rtf" => new RTFTextPage(fileInfo),
-                ".cs" => new CSharpTextPage(fileInfo),
-                _ => new AnyFileTextPage(fileInfo)
-            };
-        }
-
-        public static TextPage CreateInstance(FileInfo bufferedFile, string outputFile, string text, bool isSaved, bool empty) {
-            return bufferedFile.Extension switch {
-                ".rtf" => new RTFTextPage(bufferedFile, outputFile, text, isSaved, empty),
-                ".cs" => new CSharpTextPage(bufferedFile, outputFile, text, isSaved, empty),
-                _ => new AnyFileTextPage(bufferedFile, outputFile, text, isSaved, empty)
-            };
         }
     }
 }

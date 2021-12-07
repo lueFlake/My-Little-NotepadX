@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinFormsLibrary.Controls;
 
 namespace WinFormsLibrary.Tools
 {
@@ -31,7 +32,7 @@ namespace WinFormsLibrary.Tools
         }
 
         public static void ChangeColorScheme(ColorStyle style, Control control) {
-            if (control is Controls.RTFTextPage) {
+            if (control is TextPage && ((TextPage)control).FileExtension == ".rtf") {
                 return;
             }
             control.BackColor = style.MainBodyBackcolor;

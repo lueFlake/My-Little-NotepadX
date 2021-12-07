@@ -9,10 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Backups\**" />
     <Compile Remove="PrevioslyOpened\**" />
     <Compile Remove="PreviouslyOpened\**" />
+    <EmbeddedResource Remove="Backups\**" />
     <EmbeddedResource Remove="PrevioslyOpened\**" />
     <EmbeddedResource Remove="PreviouslyOpened\**" />
+    <None Remove="Backups\**" />
     <None Remove="PrevioslyOpened\**" />
     <None Remove="PreviouslyOpened\**" />
   </ItemGroup>
@@ -37,7 +40,6 @@
 
   <ItemGroup>
     <Folder Include="logs\" />
-    <Folder Include="Backups\" />
   </ItemGroup>
 
   <ItemGroup>

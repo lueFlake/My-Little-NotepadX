@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CSharpLibrary;
 using WinFormsLibrary.Tools;
 
 namespace WinFormsLibrary.Controls {
@@ -12,120 +14,154 @@ namespace WinFormsLibrary.Controls {
 
         private RichTextBox _localBackup;
 
-        protected bool isSaved;
-        protected bool empty;
-        protected string untitled;
-        protected FileInfo? fileInfo;
-        protected RichTextBox textBox;
+        private bool _isSaved;
+        private bool _empty;
+        private string _untitled;
+        private FileInfo? _fileInfo;
+        private RichTextBox _textBox;
+        private static Font s_textBoxDefaultFont;
 
-        public string FileName => !IsUntitled ? fileInfo.Name : untitled;
-        public string FileFullName => !IsUntitled ? fileInfo.FullName : "";
+        public bool IsUntitled => _fileInfo == null;
+        public bool IsSaved => _isSaved;
+        public bool Empty => _empty;
 
-        public bool IsUntitled => fileInfo == null;
-        public bool IsSaved => isSaved;
-        public bool Empty => empty;
+        public string FileName => !IsUntitled ? _fileInfo.Name : _untitled;
+        public string FileFullName => !IsUntitled ? _fileInfo.FullName : "";
+        public string FileExtension => !IsUntitled ? _fileInfo.Extension : ".txt";
 
         public RichTextBox TextBox {
-            get => textBox;
-            set => textBox = value;
+            get => _textBox;
+            set => _textBox = value;
         }
-        public static ColorStyle TextBoxDefaultColor { get; set; }
-        public static ContextMenuStrip ContextMenuStripForTextBoxes { get; set; }
+        public static ColorStyle TextBoxDefaultColor {
+            get; set;
+        }
 
-        protected TextPage(FileInfo? file = null) : base() {
-            fileInfo = file;
+        public static Font TextBoxDefaultFont {
+            get => s_textBoxDefaultFont;
+            set => s_textBoxDefaultFont = value;
+        }
 
-            textBox = new RichTextBox() {
+        public static ContextMenuStrip ContextMenuStripForTextBoxes {
+            get; set;
+        }
+
+        public static RichTextBox CreateTextBox() {
+            return new RichTextBox() {
                 Dock = DockStyle.Fill,
                 Multiline = true,
-                ContextMenuStrip = ContextMenuStripForTextBoxes
+                TabIndex = 0,
+                TabStop = false,
+                ContextMenuStrip = ContextMenuStripForTextBoxes,
             };
+        }
 
-            _localBackup = new RichTextBox() {
-                Dock = DockStyle.Fill,
-                Multiline = true,
-                ContextMenuStrip = ContextMenuStripForTextBoxes
-            };
+        public TextPage(FileInfo? file = null) : base() {
+            _fileInfo = file;
+
+            _textBox = CreateTextBox();
+
+            _localBackup = CreateTextBox();
+
+            _empty = IsUntitled;
+            _textBox.TextChanged += TextBoxChangeEventHandler;
+            Controls.Add(_textBox);
 
             if (!IsUntitled) {
-                InitializeTextBox();
-                isSaved = true;
+                if (FileExtension == ".rtf") {
+                    _textBox.LoadFile(FileFullName);
+                }
+                else {
+                    _textBox.Text = File.ReadAllText(FileFullName);
+                }
+                _isSaved = true;
             }
             else {
-                untitled = NamingManager.GetNewUntitled();
-                isSaved = false;
+                _untitled = NamingManager.GetNewUntitled();
+                _isSaved = false;
             }
-
-
-            empty = IsUntitled;
-            textBox.TextChanged += TextBoxChangeEventHandler;
-            Controls.Add(textBox);
-            ColorStyle.ChangeColorScheme(TextBoxDefaultColor, this);
-            UpdateText();
+            if (FileExtension == ".rtf") {
+                ColorStyle.ChangeColorScheme(new ColorStyle("Window", "Black"), this);
+            }
+            else if (FileExtension != ".rtf") {
+                ColorStyle.ChangeColorScheme(TextBoxDefaultColor, this);
+                TextBox.Font = TextBoxDefaultFont;
+            }
+            UpdatePage();
         }
 
-        protected TextPage(FileInfo? bufferedFile, string outputFile, string text, bool isSaved, bool empty) : this(bufferedFile) {
-            fileInfo = outputFile == "" ? null : new FileInfo(outputFile);
+        public TextPage(FileInfo? bufferedFile, string outputFile, string text, bool isSaved, bool empty) : this(bufferedFile) {
+            _fileInfo = outputFile == "" ? null : new FileInfo(outputFile);
             if (IsUntitled)
-                untitled = text;
-            this.isSaved = isSaved;
-            this.empty = empty;
-            UpdateText();
+                _untitled = text;
+            _isSaved = isSaved;
+            _empty = empty;
+            UpdatePage();
         }
 
-        protected virtual void InitializeTextBox() {
-            textBox.Text = File.ReadAllText(fileInfo.FullName);
-        }
 
-        public TextPage SaveFile(FileInfo file) {
-            if (file.Extension == ".rtf" && fileInfo.Extension == ".rtf") {
-                textBox.SaveFile(file.FullName);
+        public void SaveFile(FileInfo file, bool pageChanging = true) {
+            if (FileExtension == ".rtf" && FileExtension == ".rtf") {
+                _textBox.SaveFile(file.FullName);
             }
             else {
-                File.WriteAllText(file.FullName, textBox.Text);
+                File.Create(file.FullName).Close();
+                File.WriteAllText(file.FullName, _textBox.Text);
             }
-            fileInfo = file;
-            _localBackup = textBox;
-            isSaved = true;
-            UpdateText();
-            return file.Extension switch {
-                ".rtf" => new RTFTextPage(fileInfo),
-                ".cs" => new CSharpTextPage(fileInfo),
-                _ => new AnyFileTextPage(fileInfo)
-            };
+            if (pageChanging) {
+                _fileInfo = file;
+                _localBackup = _textBox;
+                _isSaved = true;
+                UpdatePage();
+            }
         }
 
-        public TextPage SaveFile() {
-            return SaveFile(fileInfo);
+        public void SaveFile(bool pageChanging = true) {
+            SaveFile(_fileInfo, pageChanging);
         }
 
         public void Reload() {
-            textBox = _localBackup;
+            _textBox = _localBackup;
             if (!File.Exists(FileFullName)) {
                 if (!IsUntitled) {
                     MessageBox.Show("Путь файла более не существует. Файл остается несохраненным!");
                 }
                 else {
-                    empty = true;
+                    _empty = true;
                 }
             }
             else {
-                isSaved = true;
+                _isSaved = true;
             }
-            UpdateText();
+            UpdatePage();
         }
 
         public override bool Equals(object? obj) {
             return (obj is TextPage) && Text == (obj as TextPage)?.Text;
         }
 
-        protected virtual void TextBoxChangeEventHandler(object sender, EventArgs e) {
-            empty = false;
-            isSaved = false;
-            UpdateText();
+        private void TextBoxChangeEventHandler(object sender, EventArgs e) {
+            _empty = false;
+            _isSaved = false;
+            UpdatePage();
         }
 
-        protected void UpdateText() {
+        private void UpdatePage() {
+            if (Text is not null && Text != "") {
+                string currentExtension = Path.GetExtension(Text);
+                if (Text[^1] == '*')
+                    currentExtension = Path.GetExtension(Text[..^1]);
+
+                if (FileExtension == ".rtf" && currentExtension != ".rtf") {
+                    TextBox.Font = new Font(new FontFamily("Calibri"), 12, FontStyle.Regular);
+                    ColorStyle.ChangeColorScheme(new ColorStyle("Window", "Black"), this);
+                }
+                else if (FileExtension != ".rtf" && currentExtension == ".rtf") {
+                    TextBox.Font = TextBoxDefaultFont;
+                    ColorStyle.ChangeColorScheme(TextBoxDefaultColor, this);
+                }
+            }
+
             if (Empty || IsSaved) {
                 Text = FileName;
             }

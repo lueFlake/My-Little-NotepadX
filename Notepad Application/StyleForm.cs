@@ -15,16 +15,31 @@ namespace NotepadApplication {
 
         private static ColorDialog s_colorDialog = new ColorDialog();
         private static FontDialog s_fontDialog = new FontDialog();
-        private ColorStyle colorTheme = ConfigurationSetter.ColorTheme;
+        private ColorStyle _colorTheme = ConfigurationSetter.ColorTheme;
 
-        public ColorStyle Callback {
-            get; set;
-        }
+        public ColorStyle ColorStyleCallback { get; private set; }
+        public Font FontCallback { get; private set; }
 
         public StyleForm() {
             InitializeComponent();
-            button3.BackColor = button4.ForeColor = colorTheme.MainBodyBackcolor;
-            button3.ForeColor = button4.BackColor = colorTheme.MainBodyForecolor;
+            FontCallback = ConfigurationSetter.MainFont;
+            ColorStyleCallback = ConfigurationSetter.ColorTheme;
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
+            ColorStyleCallback = new ColorStyle((31, 31, 31), (240, 240, 240));
+            Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e) {
+            ColorStyleCallback = new ColorStyle("Control", "Black");
+            Close();
+        }
+
+        private void StyleForm_Load(object sender, EventArgs e) {
+            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
+            button3.BackColor = button4.ForeColor = _colorTheme.MainBodyBackcolor;
+            button3.ForeColor = button4.BackColor = _colorTheme.MainBodyForecolor;
             button4.BackColor = SyntaxHighlight.SyntaxTokenColors["keyword"];
             button5.BackColor = SyntaxHighlight.SyntaxTokenColors["class name"];
             button6.BackColor = SyntaxHighlight.SyntaxTokenColors["enum name"];
@@ -35,29 +50,14 @@ namespace NotepadApplication {
             button11.BackColor = SyntaxHighlight.SyntaxTokenColors["other"];
         }
 
-        private void button1_Click(object sender, EventArgs e) {
-            Callback = new ColorStyle((31, 31, 31), (240, 240, 240));
-            this.Close();
-        }
-
-        private void button2_Click(object sender, EventArgs e) {
-            Callback = new ColorStyle("Control", "Black");
-            this.Close();
-        }
-
-        private void StyleForm_Load(object sender, EventArgs e) {
-            ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
-            Callback = ConfigurationSetter.ColorTheme;
-        }
-
         private void button3_Click(object sender, EventArgs e) {
             s_colorDialog.ShowDialog();
-            colorTheme.MainBodyBackcolor = s_colorDialog.Color;
+            _colorTheme.MainBodyBackcolor = s_colorDialog.Color;
         }
 
         private void button4_Click(object sender, EventArgs e) {
             s_colorDialog.ShowDialog();
-            colorTheme.MainBodyForecolor = s_colorDialog.Color;
+            _colorTheme.MainBodyForecolor = s_colorDialog.Color;
         }
 
         private void button5_Click(object sender, EventArgs e) {
@@ -107,15 +107,14 @@ namespace NotepadApplication {
 
         private void button13_Click(object sender, EventArgs e) {
             ColorStyle.ChangeColorScheme(ConfigurationSetter.ColorTheme, this);
-            Callback = ConfigurationSetter.ColorTheme;
+            ColorStyleCallback = ConfigurationSetter.ColorTheme;
             ConfigurationSetter.SyntaxColors = SyntaxHighlight.SyntaxTokenColors;
         }
 
         private void button14_Click(object sender, EventArgs e) {
             s_fontDialog.ShowColor = false;
             s_fontDialog.ShowDialog();
-            ConfigurationSetter.MainFont = s_fontDialog.Font;
-
+            FontCallback = s_fontDialog.Font;
         }
     }
 }

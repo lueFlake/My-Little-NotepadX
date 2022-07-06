@@ -1,0 +1,12 @@
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\bin\Debug\net5.0\CSharpLibrary.deps.json
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\bin\Debug\net5.0\CSharpLibrary.dll
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\bin\Debug\net5.0\ref\CSharpLibrary.dll
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\bin\Debug\net5.0\CSharpLibrary.pdb
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.csproj.AssemblyReference.cache
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.AssemblyInfoInputs.cache
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.AssemblyInfo.cs
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.csproj.CoreCompileInputs.cache
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.dll
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\ref\CSharpLibrary.dll
+C:\Users\usele\OneDrive\Рабочий стол\My-Little-Notepad-Refactorio1\CSharpLibrary\obj\Debug\net5.0\CSharpLibrary.pdb

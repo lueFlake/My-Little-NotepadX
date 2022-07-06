@@ -54,12 +54,19 @@ namespace WinFormsLibrary.Controls {
                 try {
                     var textPage = new TextPage(file);
 
-                    if (!Contains(textPage)) {
+                    int index = 0;
+                    foreach (var page in this) {
+                        if (page.FileFullName == textPage.FileFullName)
+                            break;
+                        index++;
+                    }
+
+                    if (index == Count) {
                         Add(textPage);
                         return Count - 1;
                     }
                     else {
-                        return IndexOf(textPage);
+                        return index;
                     }
                 }
                 catch (System.IO.IOException ex) {

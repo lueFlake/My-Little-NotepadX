@@ -215,7 +215,7 @@ namespace WinFormsLibrary.Controls {
         /// <param name="obj">Сравниваемый объект.</param>
         /// <returns>Результат сравнения: true, если объекты равны.</returns>
         public override bool Equals(object? obj) {
-            return (obj is TextPage) && Text == (obj as TextPage)?.Text;
+            return (obj is TextPage) && FileFullName == (obj as TextPage)?.FileFullName;
         }
 
         /// <summary>
@@ -255,13 +255,13 @@ namespace WinFormsLibrary.Controls {
                 Text = $"{FileName}*";
             }
         }
-
+/*
         /// <summary>
         /// Нахождение hash-функции от объекта.
         /// </summary>
         /// <returns>Результат hash-функции в виде целого числа.</returns>
         public override int GetHashCode() {
             return base.GetHashCode();
-        }
+        }*/
     }
 }
